@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lute Homepage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Newsreader:opsz,wght@6..72,300&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0}
+
+/* Layout: Figma "Homepage v1" (55:2944). Everything is drawn in 1440-px design units and scaled to the viewport width:
+   hero = keyframed intro canvas (90:19483); fixed navigation layer; sections below in normal flow. */
+:root {
+  --lute-blue: #004D78;
+  --lute-ice: #92C5E5;
+  --lute-off-white: #FEFEFC;
+  --lute-white: #FFFFFF;
+  --lute-ink: #132F40;
+  --lute-black: #000000;
+  --lute-paper: #FEFEFE;
+  --font-display: "Season Mix", "Newsreader", "Times New Roman", serif;
+  --font-mono: "Fragment Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-io: cubic-bezier(.65, 0, .35, 1);
+  color-scheme: dark;
+}
+body { background: var(--lute-paper); color: var(--lute-off-white); overflow-x: hidden; }
+html.intro-lock, html.intro-lock body { overflow: hidden; }
+
+.stage { position: relative; height: 100vh; height: 100svh; overflow: hidden; background: var(--lute-blue); }
+/* sticky navigation: its own fixed layer in design units, scaled like the hero */
+.chrome { position: fixed; left: 0; top: 0; width: 1440px; height: 420px; transform-origin: 0 0; z-index: 50; pointer-events: none; }
+.chrome > * { pointer-events: auto; }
+.chrome .navi-bg { pointer-events: none; }
+/* sections below the hero: 1440-px layout, zoomed to the viewport width */
+.sections { width: 1440px; color: var(--lute-black); }
+.canvas { position: absolute; left: 0; top: 0; width: 1440px; height: 850px; transform-origin: 0 0; overflow: hidden; }
+
+/* Slide 1–3 background: ice base + blue fading in toward the top */
+.bg { position: absolute; inset: 0;
+  background: linear-gradient(0deg, rgba(146,197,229,0) 0%, var(--lute-blue) 100%), var(--lute-ice); }
+
+/* ---------- headline block (Figma "Headline" 1336 × 366 @ 52,120) ---------- */
+.headline { position: absolute; left: 52px; top: 120px; width: 1336px; height: 366px; z-index: 4; }
+.constellation { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.constellation svg { position: absolute; left: 77.5px; top: 7.94px; width: 1218.73px; height: 345.04px; overflow: visible; }
+.point { position: absolute; display: flex; align-items: center; gap: 4px; height: 17.914px; }
+.point i { display: block; width: 8px; height: 8px; background: var(--lute-off-white); }
+.point span { font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-off-white); white-space: nowrap; }
+
+.h-line { position: absolute; margin: 0; font: 400 140px/0.9 var(--font-display); letter-spacing: -2.8px; color: var(--lute-off-white); white-space: nowrap; z-index: 3; }
+.h-line .ch { display: inline-block; will-change: transform, opacity, filter; }
+
+/* ---------- media window ---------- */
+.media { position: absolute; inset: 0; z-index: 3; clip-path: inset(100% 44px -40px 44px round 16px); }
+.media-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 50% 0; }
+.media-layer img, .media-layer video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; display: block; }
+.media-gray::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(146,197,229,0) 50%, var(--lute-blue) 100%), rgba(0,0,0,.5); }
+/* Figma: image + 50% black, then "Gradient map" shader (ice → blue, offset 22%), 1px blur */
+.media-blue img, .media-blue video { filter: url(#lute-gradient-map) blur(1px); }
+
+/* ---------- chrome ---------- */
+.navi-bg { position: absolute; left: 500px; top: 20px; width: 441px; height: 48px; z-index: 5;
+  background: rgba(0,77,120,.8); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+  clip-path: inset(0 50% 0 50%); }
+.logo { position: absolute; left: 692px; top: 32px; width: 57px; height: 24px; z-index: 6; }
+.logo svg { display: block; width: 57px; height: 24px; }
+.menu { position: absolute; right: 511px; top: 35px; z-index: 7; font: 400 14px/1.3 var(--font-mono); letter-spacing: -0.28px;
+  text-transform: uppercase; color: rgba(255,255,255,.9); background: none; border: 0; padding: 0; cursor: pointer; }
+.menu:disabled { cursor: default; }
+.menu .flip { display: block; height: 18px; overflow: hidden; text-align: right; }
+.menu .flip-in { display: flex; flex-direction: column; align-items: flex-end; transition: transform .5s var(--ease-io); }
+.menu .flip-in span { display: block; height: 18px; }
+.menu[aria-expanded="true"] .flip-in { transform: translateY(-18px); }
+.menu:hover .flip { text-decoration: underline; text-underline-offset: 3px; }
+
+/* open navigation (Figma "Navi open", node 90:19484) — grows down out of the bar */
+.navi-panel { position: absolute; left: 500px; top: 20px; width: 441px; height: 377px; z-index: 5; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: space-between; padding: 68px 12px 12px;
+  background: var(--lute-blue); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+  clip-path: inset(0 0 calc(100% - 48px) 0); visibility: hidden; }
+.navi-panel.is-open, .navi-panel.is-animating { visibility: visible; }
+.navi-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.navi-links .rise { display: block; }
+.navi-links li { overflow: hidden; padding-bottom: 4px; margin-bottom: -4px; }
+.navi-links a { position: relative; display: inline-block; font: 400 56px/1.05 var(--font-display); letter-spacing: -1.12px;
+  color: rgba(255,255,255,.9); text-decoration: none; white-space: nowrap; transition: transform .35s var(--ease-out), color .2s; }
+.navi-links a::before { content: ""; position: absolute; left: -16px; top: 50%; width: 8px; height: 8px; margin-top: -2px;
+  background: var(--lute-ice); transform: scale(0); transition: transform .3s var(--ease-out); }
+.navi-links a:hover, .navi-links a:focus-visible { color: var(--lute-white); transform: translateX(16px); outline: none; }
+.navi-links a:hover::before, .navi-links a:focus-visible::before { transform: scale(1); }
+.navi-links a:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 2px; }
+.speed { position: absolute; right: 20px; top: 20px; z-index: 6; font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-white); }
+.lute-icon { position: absolute; left: 690px; bottom: 20px; width: 60px; height: 60px; z-index: 6; }
+.lute-icon svg { display: block; width: 60px; height: 60px; }
+
+.copy { position: absolute; left: 80px; bottom: 48px; width: 504px; z-index: 6; display: flex; flex-direction: column; gap: 32px; }
+.copy p { margin: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-white); }
+.buttons { display: flex; gap: 12px; align-items: flex-start; }
+.menu:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 2px; }
+/* ---------- Lute buttons · hover "C: roll + arc fill" ----------
+   Colours follow the Figma Button component (node 40:2246), State=Default → Hover:
+   the button body stays as it is; the arrow tile changes colour.
+   1. label rolls up (old copy out, new copy in)
+   2. the tile's hover colour rises from the bottom with an arched edge that flattens as it lands
+   3. the arrow runs its own beat: it leaves to the right while a new one slides in from the left
+   Glass (Dark Secondary) has no tile: its body goes 5% → 8% white with the same arc.        */
+:root {
+  --btn-d: 450ms;                          /* fill + label */
+  --btn-e: cubic-bezier(.22, 1, .36, 1);
+  --btn-tile-delay: 0ms;                   /* tile fill, relative to the label roll */
+  --btn-arrow-delay: 90ms;                 /* arrow moves last */
+}
+.btn, .btn-dark { position: relative; isolation: isolate; overflow: hidden; display: inline-flex; align-items: center; gap: 6px;
+  height: 40px; padding: 6px 6px 6px 12px; box-sizing: border-box; cursor: pointer; text-decoration: none;
+  font: 400 14px/1.3 var(--font-mono); letter-spacing: -0.28px; text-transform: uppercase;
+  transition: border-color var(--btn-d) var(--btn-e); }
+.btn-dark { display: flex; justify-content: space-between; width: 100%; }
+
+/* colours per Figma variant: default → hover */
+/* Mode=Light, Type=Primary (44:14): tile Warm Grey 30% → Ink, arrow Ink → White */
+.btn-primary   { background: var(--lute-white); color: var(--lute-ink); border: 0;
+  --fill: transparent; --txt: var(--lute-ink); --txt-h: var(--lute-ink);
+  --tile: rgba(182,184,196,.3); --tile-h: var(--lute-ink); }
+/* Mode=Dark, Type=Secondary (44:109): body white 5% → 8%, tile (if shown) white 15% → White */
+.btn-secondary { background: rgba(255,255,255,.05); color: var(--lute-white); border: 1px solid rgba(255,255,255,.3);
+  -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+  --fill: rgba(255,255,255,.032); --txt: var(--lute-white); --txt-h: var(--lute-white);
+  --tile: rgba(255,255,255,.15); --tile-h: var(--lute-white); }
+/* Mode=Dark, Type=Primary (44:84): tile white 15% → White, arrow White → Ink */
+.btn-dark      { background: var(--lute-ink); color: var(--lute-white); border: 0;
+  --fill: transparent; --txt: var(--lute-white); --txt-h: var(--lute-white);
+  --tile: rgba(255,255,255,.15); --tile-h: var(--lute-white); }
+
+/* 1 · fill */
+.btn::before, .btn-dark::before { content: ""; position: absolute; inset: -1px; z-index: -1; background: var(--fill);
+  transform: translateY(101%); border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transition: transform var(--btn-d) var(--btn-e), border-radius var(--btn-d) var(--btn-e); }
+
+/* 2 · label roll */
+.btn .label, .btn-dark .label { display: block; padding-right: 6px; }
+.lbl { position: relative; display: block; height: 1.3em; overflow: hidden; }
+.lbl > span { display: block; white-space: nowrap; transition: transform var(--btn-d) var(--btn-e); }
+.lbl .a { color: var(--txt); }
+.lbl .b { position: absolute; left: 0; top: 100%; color: var(--txt-h); }
+
+/* 3 · arrow tile */
+.tile { position: relative; isolation: isolate; overflow: hidden; flex: none; width: 28px; height: 28px; background: var(--tile); }
+.tile::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--tile-h);
+  transform: translateY(101%); border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transition: transform var(--btn-d) var(--btn-e) var(--btn-tile-delay), border-radius var(--btn-d) var(--btn-e) var(--btn-tile-delay); }
+.tile .ar { position: absolute; inset: 0; display: grid; place-items: center;
+  transition: transform var(--btn-d) var(--btn-e) var(--btn-arrow-delay); }
+.tile .ar svg { display: block; width: 12px; height: 12px; }
+.tile .ar-b { transform: translateX(-100%); }
+
+/* hover / keyboard focus / touch */
+:is(.btn, .btn-dark):is(:hover, :focus-visible, .is-hover)::before { transform: translateY(0); border-radius: 0; }
+:is(.btn, .btn-dark):is(:hover, :focus-visible, .is-hover) .lbl > span { transform: translateY(-100%); }
+:is(.btn, .btn-dark):is(:hover, :focus-visible, .is-hover) .tile::before { transform: translateY(0); border-radius: 0; }
+:is(.btn, .btn-dark):is(:hover, :focus-visible, .is-hover) .tile .ar-a { transform: translateX(100%); }
+:is(.btn, .btn-dark):is(:hover, :focus-visible, .is-hover) .tile .ar-b { transform: translateX(0); }
+/* on the way out the tile goes first, so the reverse mirrors the entry */
+:is(.btn, .btn-dark):not(:hover, :focus-visible, .is-hover) .tile::before,
+:is(.btn, .btn-dark):not(:hover, :focus-visible, .is-hover) .tile .ar { transition-delay: 0ms; }
+/* State=Focus: 2px Lute Ice ring on the button edge */
+:is(.btn, .btn-dark):focus-visible { outline: 2px solid var(--lute-ice); outline-offset: -2px; }
+:is(.btn, .btn-dark):active::before { transition-duration: 120ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn-dark, .btn *, .btn-dark *, .btn::before, .btn-dark::before, .tile::before { transition-duration: 1ms !important; transition-delay: 0ms !important; }
+}
+
+
+/* ---------- prototype controls (not part of the design) ---------- */
+.controls { position: fixed; z-index: 20; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; max-width: calc(100vw - 32px); box-sizing: border-box;
+  background: rgba(19,47,64,.72); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.14);
+  font: 400 11px/1 var(--font-mono); letter-spacing: -0.2px; text-transform: uppercase; color: var(--lute-off-white); opacity: .55; transition: opacity .2s; }
+.controls:hover, .controls:focus-within { opacity: 1; }
+.controls button { font: inherit; text-transform: inherit; color: inherit; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); padding: 6px 8px; cursor: pointer; }
+.controls button:hover { background: rgba(255,255,255,.16); }
+.controls button:focus-visible, .controls input:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 1px; }
+.controls input[type=range] { width: 180px; min-width: 0; flex: 1 1 auto; accent-color: var(--lute-ice); }
+.controls output { font-variant-numeric: tabular-nums; min-width: 4.2em; text-align: right; }
+.controls .state { color: var(--lute-ice); min-width: 4.5em; }
+
+.controls.is-away { opacity: 0; pointer-events: none; }
+/* ---------- shared section type ---------- */
+.mono-xs { font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-blue); margin: 0; }
+
+/* ---------- Section 2 · The problem (55:2990), 1440 × 810 ---------- */
+.s2 { position: relative; height: 810px; background: var(--lute-paper); overflow: hidden; }
+.s2-eyebrow { position: absolute; left: 673px; top: 168px; }
+.s2-title { margin: 0; font-weight: 400; }
+.s2-line { position: absolute; display: flex; align-items: flex-start; gap: 20px; }
+.s2-txt { display: block; font: 400 72px/0.95 var(--font-display); letter-spacing: -1.44px; color: var(--lute-black); white-space: pre; }
+.s2-pt { display: flex; align-items: center; gap: 5.47px; height: 7.12px; width: 36.13px; justify-content: flex-end; }
+.s2-pt i { display: block; width: 6px; height: 6px; background: var(--lute-black); }
+.s2-pt b { font: 400 9px/1.3 var(--font-mono); letter-spacing: -0.18px; color: var(--lute-black); }
+
+.s2-card { position: absolute; margin: 0; width: 210px; display: flex; flex-direction: column; }
+.s2-card figcaption { display: flex; justify-content: space-between; }
+.s2-card--learning { left: 1150px; top: 110px; gap: 10px; }
+.s2-card--learning .s2-img { height: 243px; }
+.s2-card--precision { position: static; gap: 8px; }
+.s2-card--precision .s2-img { height: 137px; }
+.s2-img { position: relative; overflow: hidden; border-radius: 8px; }
+.s2-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.s2-card--learning img { object-position: 50% 100%; }
+.s2-card--precision img { inset: -6.54px auto auto -10px; width: 237px; height: 155.09px; }
+.s2-img::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.2); }
+.s2-bottom { position: absolute; left: 80px; top: 512px; width: 765px; display: flex; flex-direction: column; gap: 20px; }
+.s2-bottom .s2-card { width: 210px; }
+.s2-body { margin: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-black); }
+
+/* ---------- scroll reveal (only when JS is running and motion is allowed) ---------- */
+.rv [data-r] { will-change: transform, opacity, clip-path; }
+.rv [data-r="fade"]:not(.in) { opacity: 0; transform: translateY(16px); }
+.rv [data-r="line"]:not(.in) { opacity: 0; transform: translateY(0.45em); clip-path: inset(0 0 100% 0); }
+.rv [data-r="pt"]:not(.in) i { transform: scale(0); }
+.rv [data-r="pt"]:not(.in) b { clip-path: inset(0 100% 0 0); }
+.rv [data-r="img"]:not(.in) { clip-path: inset(100% 0 0 0 round 8px); }
+.rv [data-r="img"]:not(.in) img { transform: scale(1.15); }
+.rv [data-r="type"]:not(.in) span { clip-path: inset(0 100% 0 0); }
+.rv [data-r="fade"], .rv [data-r="line"] { transition: opacity .9s var(--ease-out), transform .9s var(--ease-out), clip-path .9s var(--ease-out); transition-delay: var(--dl, 0ms); }
+.rv [data-r="pt"] i { display: block; transition: transform .45s var(--ease-out) var(--dl, 0ms); }
+.rv [data-r="pt"] b { transition: clip-path .35s steps(4, end) calc(var(--dl, 0ms) + 120ms); }
+.rv [data-r="img"] { transition: clip-path 1.1s var(--ease-io) var(--dl, 0ms); }
+.rv [data-r="img"] img { transition: transform 1.4s var(--ease-out) var(--dl, 0ms); }
+.rv [data-r="type"] span { transition: clip-path .4s steps(6, end) var(--dl, 0ms); }
+
+/* ---------- Section 3 · How it works (75:5615) — pinned, 3 scroll steps ---------- */
+/* the section is three viewports tall; the 1440 × 810 frame stays pinned while the steps change */
+.s3 { position: relative; height: calc(var(--vhd, 850px) * 3); background: var(--lute-paper); }
+.s3-pin { position: sticky; top: 0; height: var(--vhd, 850px); overflow: hidden; }
+.s3-frame { position: absolute; left: 0; width: 1440px; height: 810px; top: max(0px, calc((var(--vhd, 850px) - 810px) / 2)); }
+
+.s3-media { position: absolute; left: 80px; top: 20px; width: 535px; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.s3-video { position: relative; height: 709.17px; border-radius: 16.37px; overflow: hidden; background: #1a1a1a; }
+.s3-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  clip-path: inset(100% 0 0 0); transition: clip-path .9s var(--ease-io); z-index: 1; }
+.s3-video video.is-active { clip-path: inset(0 0 0 0); z-index: 2; }
+.s3-video video.is-leaving { clip-path: inset(0 0 0 0); z-index: 1; transition: none; }
+.s3-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 497.78px; z-index: 3; pointer-events: none;
+  background: linear-gradient(0deg, var(--lute-blue) 0%, rgba(146,197,229,0) 50%); }
+.s3-media figcaption { text-align: center; }
+
+.s3-copy { position: absolute; left: 730px; top: 218px; width: 555px; display: flex; flex-direction: column; gap: 64px; }
+.s3-title { position: relative; margin: 0; height: 142px; font-weight: 400; }
+.s3-eyebrow { position: absolute; left: 6px; top: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-blue); }
+.s3-h { position: absolute; white-space: pre; font: 400 56px/1.05 var(--font-display); letter-spacing: -1.12px; color: var(--lute-black); }
+
+/* step copy: the active item rolls in from below, the previous one rolls out upwards */
+.s3-items { position: relative; height: 108px; }
+.s3-item { position: absolute; inset: 0 auto auto 0; width: 555px; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+.s3-item h3, .s3-item p { margin: 0; overflow: hidden; font: 400 20px/1.2 var(--font-mono); letter-spacing: -0.4px; text-transform: uppercase; color: var(--lute-black); }
+.s3-item h3 span, .s3-item p span { display: block; transform: translateY(110%); opacity: 0;
+  transition: transform .7s var(--ease-out), opacity .5s var(--ease-out); }
+.s3-item p span { transition-delay: 0s; }
+.s3-item.is-active h3 span, .s3-item.is-active p span { transform: none; opacity: 1; }
+.s3-item.is-active h3 span { transition-delay: .12s; }
+.s3-item.is-active p span { transition-delay: .2s; }
+.s3-item.is-past h3 span, .s3-item.is-past p span { transform: translateY(-110%); }
+
+.s3-index { position: absolute; right: 40px; top: 410px; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 35px; }
+.s3-index button { position: relative; padding: 0; border: 0; background: none; cursor: pointer;
+  font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-ice); transition: color .4s var(--ease-out); }
+.s3-index button::before { content: ""; position: absolute; left: -14px; top: 50%; width: 6px; height: 6px; margin-top: -3px; background: var(--lute-black);
+  transform: scale(0); transition: transform .35s var(--ease-out); }
+.s3-index button.is-active { color: var(--lute-black); }
+.s3-index button.is-active::before { transform: scale(1); }
+.s3-index button:hover { color: var(--lute-blue); }
+.s3-index button:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 4px; }
+
+.s3-icon { position: absolute; right: 20px; bottom: 20px; width: 60px; height: 60px; }
+.s3-icon svg { display: block; width: 60px; height: 60px; }
+.s3-icon path { fill: var(--lute-black); }
+
+@media (prefers-reduced-motion: reduce) {
+  .s3-video video, .s3-item h3 span, .s3-item p span { transition-duration: 1ms !important; transition-delay: 0s !important; }
+}
+
+/* ---------- Section 4 · How it learns (82:16818), 1440 × 1047 ---------- */
+.s4 { position: relative; height: 1047px; background: var(--lute-white); }
+.s4-eyebrow { position: absolute; left: 220px; top: 120px; }
+.s4-title { margin: 0; font-weight: 400; }
+.s4-body { position: absolute; left: 963px; top: 258px; width: 437px; margin: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-black); }
+
+.s4-board { position: absolute; left: 40px; top: 382px; width: 1360px; height: 545px; box-sizing: border-box;
+  border: 1px solid var(--lute-ice); border-radius: 16px; overflow: hidden; }
+.s4-line { position: absolute; left: 201.5px; top: 62px; width: 946.2px; height: 408px; overflow: visible; }
+.s4-spin { position: absolute; left: 201.5px; top: 62px; width: 946.2px; height: 408px; overflow: visible; pointer-events: none; }
+.s4-spin polyline { fill: none; stroke: var(--lute-ice); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+
+/* loop steps: black tag; the active one turns Lute Ice and opens its description */
+.s4-steps { list-style: none; margin: 0; padding: 0; }
+.s4-step { position: absolute; z-index: 2; will-change: transform; }
+.s4-step.is-active { z-index: 3; }
+.s4-step button { display: flex; align-items: flex-start; gap: 10px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; color: inherit; }
+.s4-step i { display: block; width: 8px; height: 8px; flex: none; background: var(--lute-black); transition: transform .8s var(--ease-out); }
+.s4-tag { display: grid; grid-template-rows: auto 0fr; padding: 6px 8px; background: var(--lute-black); border: 1px solid rgba(175,204,222,.5);
+  font: 400 14px/1.3 var(--font-mono); letter-spacing: -0.28px; text-transform: uppercase; color: var(--lute-white);
+  transition: grid-template-rows 1.1s var(--ease-io), background-color .7s ease, color .7s ease; }
+.s4-name { white-space: nowrap; }
+.s4-desc { overflow: hidden; min-height: 0; width: 0; min-width: 100%; transition: width 1.1s var(--ease-io); }
+.s4-step.is-active .s4-desc { width: 226px; }
+.s4-desc span { display: block; width: 226px; padding-top: 12px; opacity: 0; transform: translateY(-6px); transition: opacity .6s ease, transform .8s var(--ease-out); }
+.s4-step.is-active .s4-tag { grid-template-rows: auto 1fr; background: var(--lute-ice); color: var(--lute-black); }
+.s4-step.is-active .s4-desc span { opacity: 1; transform: none; transition-delay: .4s; }
+.s4-step.is-active i { transform: scale(1.25); }
+.s4-step button:focus-visible { outline: none; }
+.s4-step button:focus-visible .s4-tag { outline: 2px solid var(--lute-blue); outline-offset: 2px; }
+
+/* reveal: tags wait for the line to draw */
+.rv .s4-step button { opacity: 0; transform: translateY(6px); transition: opacity .5s var(--ease-out), transform .6s var(--ease-out); }
+.rv .s4-step.in button { opacity: 1; transform: none; }
+
+/* ---------- Section 5 · Industry sectors (75:12315), 1440 × 736 ---------- */
+.s5 { position: relative; height: 736px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 49.97%, var(--lute-blue) 100%), var(--lute-off-white); }
+.s5-inner { position: absolute; left: 283px; top: 80px; width: 863px; display: flex; flex-direction: column; gap: 32px; }
+.s5-head { position: relative; height: 92px; }
+.s5-eyebrow { position: absolute; left: 0; top: 9px; }
+.s5-title { margin: 0; font-weight: 400; }
+.s5-h { position: absolute; width: 340px; text-align: center; white-space: pre; font: 400 44px/1.05 var(--font-display); letter-spacing: -0.88px; color: var(--lute-black); }
+
+.s5-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.s5-item { position: relative; display: flex; align-items: center; padding: 16px; border: 1px solid var(--lute-ice); border-radius: 16px; overflow: hidden; }
+.s5-item--end { justify-content: flex-end; }
+.s5-word { margin: 0; font: 400 103px/0.95 var(--font-display); letter-spacing: -2.06px; color: var(--lute-black); white-space: nowrap; overflow: hidden; padding-bottom: 6px; margin-bottom: -6px; }
+.s5-word span { display: block; transition: transform .6s var(--ease-out); }
+
+.s5-pills { box-sizing: border-box; list-style: none; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.s5-pills--right { padding: 0 0 0 24px; }
+.s5-pills--left { padding: 0 24px 0 0; justify-content: flex-end; gap: 4px; }
+.s5-pills--right:not([style]) { width: 199px; }
+.s5-break { flex-basis: auto; }
+.s5-pills li { padding: 4px 8px; border: 1px solid var(--lute-ice); border-radius: 999px; white-space: nowrap;
+  font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-blue);
+  transition: background-color .35s ease, border-color .35s ease; transition-delay: calc(var(--i, 0) * 40ms); }
+
+/* reveal: rows rise in turn, the word slides up inside its row, pills follow */
+.rv .s5-item:not(.in) { opacity: 0; transform: translateY(24px); }
+.rv .s5-item { transition: opacity .8s var(--ease-out) var(--dl, 0ms), transform .9s var(--ease-out) var(--dl, 0ms); }
+.rv .s5-item:not(.in) .s5-word span { transform: translateY(105%); }
+.rv .s5-item.in .s5-word span { transition: transform 1s var(--ease-out) calc(var(--dl, 0ms) + 120ms); }
+.rv .s5-item:not(.in) .s5-pills li { opacity: 0; transform: scale(.85); }
+.rv .s5-pills li { transition: opacity .4s ease, transform .5s var(--ease-out), background-color .35s ease, border-color .35s ease;
+  transition-delay: calc(var(--dl, 0ms) + 420ms + var(--i, 0) * 70ms); }
+
+/* ---------- Section 6 · Team logos (75:10448), 1440 × 221 — marquee ---------- */
+.s6 { position: relative; height: 221px; background: var(--lute-blue); overflow: hidden; }
+.s6-title { position: absolute; left: 0; right: 0; top: 40px; margin: 0; text-align: center;
+  font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-white); }
+.s6-viewport { position: absolute; left: 0; right: 0; top: 101px; height: 80px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 120px, #000 calc(100% - 120px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 120px, #000 calc(100% - 120px), transparent 100%); }
+.s6-track { list-style: none; margin: 0; padding: 0; display: flex; width: max-content; height: 80px; }
+.s6-set { display: flex; align-items: center; gap: 100px; padding-right: 100px; height: 80px; }
+.s6-logo { display: flex; align-items: center; justify-content: center; flex: none; height: 80px; }
+.s6-logo img { display: block; max-width: none; }
+.s6-uw { gap: 6px; }
+.s6-track.is-running { animation: s6-marquee var(--s6-dur, 40s) linear infinite; }
+.s6-viewport:hover .s6-track { animation-play-state: paused; }
+@keyframes s6-marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .s6-track.is-running { animation: none; } }
+
+/* ---------- Section 7 · Blog (75:13576), 1440 × 731 ---------- */
+.s7 { position: relative; background: var(--lute-white); padding: 80px 40px 120px; display: flex; flex-direction: column; gap: 20px; }
+.s7-eyebrow { font-weight: 400; }
+.s7-grid { display: grid; grid-template-columns: repeat(3, 440px); gap: 20px; align-items: stretch; }
+.s7-card { display: flex; flex-direction: column; gap: 20px; color: var(--lute-black); text-decoration: none; }
+.s7-card:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 6px; }
+
+/* image mask: the picture grows inside it on hover */
+.s7-media { position: relative; height: 300px; border-radius: 8px; overflow: hidden; isolation: isolate; }
+.s7-zoom { position: absolute; inset: 0; transition: transform 1.1s cubic-bezier(.22,1,.36,1); }
+.s7-zoom img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; display: block; }
+.s7-card:is(:hover, :focus-visible) .s7-zoom { transform: scale(1.08); }
+.s7-shade { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(0deg, var(--lute-blue) 0%, rgba(146,197,229,0) 50%); }
+.s7-media--graphic .s7-zoom { background: linear-gradient(180deg, rgba(146,197,229,0) 0%, var(--lute-blue) 100%), var(--lute-ice); }
+.s7-lines { position: absolute; left: 67px; top: 27px; width: 318.07px; height: 234.78px; overflow: visible; }
+.s7-pt { position: absolute; display: flex; align-items: center; gap: 5px; }
+.s7-pt i { display: block; width: 6.19px; height: 6.19px; background: var(--lute-off-white); }
+.s7-pt b { font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; color: var(--lute-off-white); }
+/* card 3: image + Figma "Gradient map" (Ice → Blue) and 1 px blur */
+.s7-zoom--map img { top: auto; height: 325px; object-position: 50% 50%; filter: url(#lute-gradient-map) blur(1px); }
+
+.s7-text { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+.s7-date { margin: 0 0 -12px; font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; }
+.s7-h { margin: 0; font: 400 31px/1.05 var(--font-display); letter-spacing: -0.62px; text-wrap: balance; }
+.s7-desc { margin: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; }
+
+/* Button / Icon only (76:504): "hover inverts the fill" — Ink rises from the bottom, arrow swaps */
+.s7-arrow { position: relative; isolation: isolate; overflow: hidden; display: block; flex: none; width: 32px; height: 32px; box-sizing: border-box;
+  border: 1px solid rgba(19,47,64,.3); background: rgba(255,255,255,.05); transition: border-color var(--btn-d) var(--btn-e); }
+.s7-arrow::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--lute-ink);
+  transform: translateY(101%); border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transition: transform var(--btn-d) var(--btn-e), border-radius var(--btn-d) var(--btn-e); }
+.s7-arrow .ar { position: absolute; inset: 0; display: grid; place-items: center; transition: transform var(--btn-d) var(--btn-e) var(--btn-arrow-delay); }
+.s7-arrow .ar svg { display: block; width: 12px; height: 12px; }
+.s7-arrow .ar-b { transform: translateX(-100%); }
+.s7-card:is(:hover, :focus-visible) .s7-arrow { border-color: var(--lute-ink); }
+.s7-card:is(:hover, :focus-visible) .s7-arrow::before { transform: none; border-radius: 0; }
+.s7-card:is(:hover, :focus-visible) .s7-arrow .ar-a { transform: translateX(100%); }
+.s7-card:is(:hover, :focus-visible) .s7-arrow .ar-b { transform: none; }
+.s7-card:not(:hover, :focus-visible) .s7-arrow .ar { transition-delay: 0ms; }
+
+/* reveal: cards rise in turn, images unmask from the bottom */
+.rv .s7-card:not(.in) { opacity: 0; transform: translateY(28px); }
+.rv .s7-card { transition: opacity .8s var(--ease-out) var(--dl, 0ms), transform .9s var(--ease-out) var(--dl, 0ms); }
+.rv .s7-card:not(.in) .s7-media { clip-path: inset(100% 0 0 0 round 8px); }
+.rv .s7-card .s7-media { transition: clip-path 1.1s var(--ease-io) var(--dl, 0ms); }
+@media (prefers-reduced-motion: reduce) { .s7-zoom { transition: none; } }
+
+/* ---------- Section 8 · CTA (82:15479), 1440 × 604 + footer 320 ---------- */
+.s8 { position: relative; height: 604px; overflow: hidden;
+  background: linear-gradient(0deg, rgba(146,197,229,0) 0%, var(--lute-blue) 100%), var(--lute-ice); }
+.s8-headline { position: absolute; left: 52px; top: 80px; width: 1336px; height: 366px; }
+.s8-route { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.s8-route svg { position: absolute; left: 77.5px; top: 8.14px; width: 1221.34px; height: 344.55px; overflow: visible; }
+.s8-point { position: absolute; display: flex; align-items: center; gap: 4px; height: 17.914px; }
+.s8-point i { display: block; width: 8px; height: 8px; background: var(--lute-off-white); }
+.s8-point span { font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-off-white); white-space: nowrap; }
+.s8-title { margin: 0; font-weight: 400; }
+.s8-line { position: absolute; z-index: 2; white-space: nowrap; font: 400 103px/0.95 var(--font-display); letter-spacing: -2.06px; color: var(--lute-off-white); }
+.s8-line .ch { display: inline-block; }
+.s8-row { position: absolute; left: 40px; right: 40px; top: 486px; display: flex; align-items: center; justify-content: space-between; }
+.s8-copy { margin: 0; width: 613px; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-white); }
+.s8-btn { width: 272px; justify-content: space-between; }
+
+/* footer */
+.s9 { position: relative; height: 320px; background: var(--lute-white); overflow: hidden; color: var(--lute-blue); }
+.s9-brand { position: absolute; left: 40px; bottom: 40px; display: flex; gap: 40px; align-items: flex-start; }
+.s9-wordmark { display: block; width: 468px; height: 200px; overflow: hidden; }
+.s9-wordmark span { display: block; }
+.s9-wordmark svg { display: block; width: 468px; height: 200px; }
+.s9-tagline { margin: 0; width: 117px; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; }
+.s9-cols { position: absolute; left: 858px; top: 82px; display: flex; gap: 61px; }
+.s9-links { list-style: none; margin: 0; padding: 0; width: 210px; display: flex; flex-direction: column; gap: 16px; }
+.s9-col2 { width: 210px; display: flex; flex-direction: column; gap: 60px; }
+.s9-loc { margin: 0; white-space: nowrap; font: 400 14px/1.3 var(--font-mono); letter-spacing: -0.28px; text-transform: uppercase; }
+.s9-social { display: flex; gap: 10px; }
+.s9-social a { display: block; width: 24px; height: 24px; transition: transform .3s var(--ease-out); }
+.s9-social a:hover { transform: translateY(-2px); }
+.s9-social svg { display: block; width: 24px; height: 24px; }
+.s9 a { color: inherit; text-decoration: none; }
+.s9-links a, .s9-meta a { position: relative; font: 400 14px/1.3 var(--font-mono); letter-spacing: -0.28px; text-transform: uppercase;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .4s var(--ease-out); }
+.s9-links a:hover, .s9-meta a:hover { background-size: 100% 1px; }
+.s9-meta { position: absolute; left: 858px; top: 266px; display: flex; gap: 24px; align-items: center; white-space: nowrap;
+  font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; }
+.s9-meta a { font-size: 12px; line-height: 1.2; letter-spacing: -0.24px; }
+.s9 a:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 3px; }
+
+/* CTA / footer reveal states (set up by JS only) */
+.rv .s8:not(.is-on) .s8-copy, .rv .s8:not(.is-on) .s8-btn { opacity: 0; transform: translateY(16px); }
+.rv .s8 .s8-copy, .rv .s8 .s8-btn { transition: opacity .8s var(--ease-out), transform .9s var(--ease-out); }
+.rv .s8.is-on .s8-copy { transition-delay: var(--copy-dl, 0ms); }
+.rv .s8.is-on .s8-btn { transition-delay: calc(var(--copy-dl, 0ms) + 150ms); }
+.rv .s9:not(.is-on) .s9-wordmark span { transform: translateY(105%); }
+.rv .s9 .s9-wordmark span { transition: transform 1.2s var(--ease-out); }
+.rv .s9:not(.is-on) :is(.s9-tagline, .s9-links li, .s9-loc, .s9-social, .s9-meta) { opacity: 0; transform: translateY(10px); }
+.rv .s9 :is(.s9-tagline, .s9-links li, .s9-loc, .s9-social, .s9-meta) { transition: opacity .7s var(--ease-out) var(--dl, 0ms), transform .8s var(--ease-out) var(--dl, 0ms), background-size .4s var(--ease-out); }
+
+@media (max-width: 520px) { .controls input[type=range] { width: 90px; } .controls .state { display: none; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="lute-gradient-map" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+    <!-- image × 50% black overlay, then the shader's linear→sRGB step (≈ gamma 1/2.4) -->
+    <feComponentTransfer>
+      <feFuncR type="gamma" amplitude="0.7492" exponent="0.4167" offset="0"/>
+      <feFuncG type="gamma" amplitude="0.7492" exponent="0.4167" offset="0"/>
+      <feFuncB type="gamma" amplitude="0.7492" exponent="0.4167" offset="0"/>
+    </feComponentTransfer>
+    <!-- luma − 22% offset -->
+    <feColorMatrix type="matrix" values="
+      0.2126 0.7152 0.0722 0 -0.22
+      0.2126 0.7152 0.0722 0 -0.22
+      0.2126 0.7152 0.0722 0 -0.22
+      0 0 0 1 0"/>
+    <!-- gradient ramp: #92C5E5 @ 0 → #004D78 @ 0.538 (7/13), flat after -->
+    <feComponentTransfer>
+      <feFuncR type="table" tableValues="0.5725 0.4908 0.4090 0.3272 0.2454 0.1636 0.0818 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000"/>
+      <feFuncG type="table" tableValues="0.7725 0.7053 0.6381 0.5709 0.5036 0.4364 0.3692 0.3020 0.3020 0.3020 0.3020 0.3020 0.3020 0.3020"/>
+      <feFuncB type="table" tableValues="0.8980 0.8370 0.7759 0.7148 0.6538 0.5927 0.5317 0.4706 0.4706 0.4706 0.4706 0.4706 0.4706 0.4706"/>
+    </feComponentTransfer>
+  </filter>
+</svg>
+
+<main class="stage" id="stage">
+  <div class="canvas" id="canvas">
+    <div class="bg" id="bg"></div>
+
+    <div class="headline">
+      <div class="constellation" id="constellation" aria-hidden="true">
+        <svg viewBox="0 0 1218.73 345.036" fill="none">
+          <path id="route" d="M0.580092 344.561L282.08 1.0605L402.58 101.561L228.08 117.561L607.58 229.561L1218.58 109.061" stroke="#92C5E5" stroke-width="1.5"/>
+        </svg>
+        <div class="point" style="left:75px;top:340.086px"><i></i><span>(01)</span></div>
+        <div class="point" style="left:354px;top:1px"><i></i><span>(02)</span></div>
+        <div class="point" style="left:476px;top:100.086px"><i></i><span>(03)</span></div>
+        <div class="point" style="left:301px;top:116px"><i></i><span>(04)</span></div>
+        <div class="point" style="left:681px;top:227.086px"><i></i><span>(05)</span></div>
+        <div class="point" style="left:1295px;top:109px"><i></i><span>(06)</span></div>
+      </div>
+      <h1 aria-label="Make the impossible operational." style="margin:0">
+        <span class="h-line" style="left:0;top:0" aria-hidden="true">Make</span>
+        <span class="h-line" style="left:488px;top:119px" aria-hidden="true">the impossible</span>
+        <span class="h-line" style="left:139px;top:240px" aria-hidden="true">operational.</span>
+      </h1>
+    </div>
+
+    <div class="media" id="media" aria-hidden="true">
+      <!-- B&W variant: the clip stays black & white (50% darken + blue fade at the bottom) from the first frame, no gradient-map / freeze effect -->
+      <div class="media-layer media-gray" id="mediaGray"><video id="vidMain" src="media/lute_sklep_t2_bw.mp4" poster="assets/images/hero-poster.jpg" muted loop playsinline preload="auto"></video></div>
+    </div>
+
+    <div class="speed" id="speed">Video speed 3x</div>
+
+    <div class="copy" id="copy">
+      <p id="lede">Lute combines physical AI software, monitoring, and remote support. Together they turn emerging capabilities into work businesses can rely on today.</p>
+      <div class="buttons">
+        <a class="btn btn-primary" id="btn1" href="#"><span class="label"><span class="lbl"><span class="a">Talk to us</span><span class="b" aria-hidden="true">Talk to us</span></span></span><span class="tile" aria-hidden="true"><span class="ar ar-a"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="#132F40" stroke-width="1.3"/>
+</g>
+</svg></span><span class="ar ar-b"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="white" stroke-width="1.3"/>
+</g>
+</svg></span></span></a>
+        <a class="btn btn-secondary" id="btn2" href="#"><span class="label"><span class="lbl"><span class="a">See how Lute learns</span><span class="b" aria-hidden="true">See how Lute learns</span></span></span></a>
+      </div>
+    </div>
+
+    <div class="lute-icon" id="luteIcon" aria-hidden="true"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<g>
+<path d="M37.7778 44.5831V49.8148H32.5925V44.5831H37.7778Z" fill="white"/>
+<path d="M27.4075 43.3488H22.2222V29.9591L27.4075 27.654V43.3488Z" fill="white"/>
+<path d="M37.7778 25.8799H32.5925V20.6482H37.7778V25.8799Z" fill="white"/>
+<path d="M37.7778 15.4169H32.5925V10.1852H37.7778V15.4169Z" fill="white"/>
+</g>
+</g>
+</svg></div>
+  </div>
+</main>
+
+<header class="chrome" id="chrome">
+    <div class="navi-bg" id="naviBg"></div>
+    <a class="logo" id="logo" href="#" aria-label="Lute home"><svg width="57" height="24" viewBox="0 0 57 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<g>
+<path d="M3.21275 18.6237V1.02287e-05L0 1.40595V18.8366C0 22.9505 2.78539 24 5.64117 24C6.53109 24 7.46123 23.896 8.28076 23.6485V21.0148C7.74782 21.0841 7.13945 21.1534 6.53109 21.1534C4.85181 21.1534 3.21275 20.698 3.21275 18.6237Z" fill="#FEFEFC"/>
+<path d="M23.0524 16.0941C23.0524 19.2921 21.0513 20.9059 18.1604 20.9059C15.2694 20.9059 13.2734 19.2871 13.2734 16.0941V5.1634H10.0606V17.005C10.0606 21.5396 13.1678 24 17.0543 24C19.729 24 21.7653 22.9802 22.977 20.9802H23.0474V23.4406H26.2601V5.1634H23.0474V16.0941H23.0524Z" fill="#FEFEFC"/>
+<path d="M33.3443 0L30.1315 1.40594V18.8366C30.1315 22.9505 32.9169 24 35.7727 24C36.6626 24 37.5927 23.896 38.4123 23.6485V21.0148C37.8793 21.0841 37.271 21.1534 36.6626 21.1534C34.9833 21.1534 33.3443 20.698 33.3443 18.6237V7.97523H38.4123V5.16336H33.3443V0Z" fill="#FEFEFC"/>
+<path d="M56.995 13.9159C56.995 8.2921 53.8526 4.60399 48.2517 4.60399C43.1937 4.60399 39.8754 7.89606 39.2972 12.698C39.2972 12.698 39.2972 12.7079 39.2972 12.7129C39.2972 12.7129 39.2972 12.7129 39.2972 12.7178C39.2368 13.2129 39.1866 13.7525 39.1866 14.2673C39.1866 14.6733 39.2268 15.0743 39.262 15.4703C39.7296 20.4901 43.2239 23.995 48.4327 23.995C52.7867 23.995 55.9291 21.5347 56.6078 17.8119H53.1437C52.6811 19.8515 50.8259 21.0446 48.4327 21.0446C45.2249 21.0446 43.0127 18.9059 42.6155 15.4703H42.6256V15.4604H57V13.9159H56.995ZM42.5501 14.3267C42.5501 14.3267 42.5501 14.3119 42.5501 14.302C42.5501 14.2921 42.5501 14.2871 42.5501 14.2772C42.5501 14.2921 42.5501 14.3069 42.5501 14.3267ZM42.6507 12.7228C42.6507 12.7228 42.6507 12.7277 42.6507 12.7327H42.6205L42.6507 12.7228C43.1485 9.52477 45.1495 7.55448 48.2517 7.55448C51.3538 7.55448 53.2493 9.38121 53.5711 12.7228H42.6507Z" fill="#FEFEFC"/>
+</g>
+</g>
+</svg></a>
+    <nav class="navi-panel" id="naviPanel" aria-label="Main" inert>
+      <ul class="navi-links">
+        <li><span class="rise"><a href="#">Blog</a></span></li>
+        <li><span class="rise"><a href="#">About us</a></span></li>
+        <li><span class="rise"><a href="#">News</a></span></li>
+      </ul>
+      <a class="btn-dark" id="naviCta" href="#"><span class="label"><span class="lbl"><span class="a">Talk to us</span><span class="b" aria-hidden="true">Talk to us</span></span></span><span class="tile" aria-hidden="true"><span class="ar ar-a"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="white" stroke-width="1.3"/>
+</g>
+</svg></span><span class="ar ar-b"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="#132F40" stroke-width="1.3"/>
+</g>
+</svg></span></span></a>
+    </nav>
+    <button class="menu" id="menu" type="button" aria-expanded="false" aria-controls="naviPanel" aria-label="Open menu">
+      <span class="flip" aria-hidden="true"><span class="flip-in"><span>Menu</span><span>Close</span></span></span>
+    </button>
+</header>
+
+<div class="sections" id="sections">
+  <!-- Section 2 · The problem (Figma "secction 2", 55:2990) -->
+  <section class="s2" id="problem" aria-labelledby="s2-title">
+    <p class="s2-eyebrow mono-xs" data-r="fade">(the problem)</p>
+    <h2 class="s2-title" id="s2-title" aria-label="Physical AI stops being a demo when it starts becoming capacity.">
+      <span class="s2-line" style="left:353px;top:192px" aria-hidden="true"><span class="s2-txt" data-r="line">Physical AI stops being</span><span class="s2-pt" data-r="pt"><i></i><b>(01)</b></span></span>
+      <span class="s2-line" style="left:578px;top:268px" aria-hidden="true"><span class="s2-pt" data-r="pt"><i></i><b>(02)</b></span><span class="s2-txt" data-r="line">a demo </span></span>
+      <span class="s2-line" style="left:403px;top:344px" aria-hidden="true"><span class="s2-txt" data-r="line"> when it starts</span><span class="s2-pt" data-r="pt"><i></i><b>(03)</b></span></span>
+      <span class="s2-line" style="left:403px;top:420px" aria-hidden="true"><span class="s2-pt" data-r="pt"><i></i><b>(04)</b></span><span class="s2-txt" data-r="line">becoming capacity.</span></span>
+    </h2>
+
+    <figure class="s2-card s2-card--learning">
+      <figcaption class="mono-xs" data-r="type"><span>(03)</span><span>Learning</span></figcaption>
+      <div class="s2-img" data-r="img"><img src="assets/images/problem-learning.jpg" alt="Two-armed robot at a workbench, learning a task" loading="lazy"></div>
+    </figure>
+
+    <div class="s2-bottom">
+      <figure class="s2-card s2-card--precision">
+        <figcaption class="mono-xs" data-r="type"><span>(05)</span><span>Precision</span></figcaption>
+        <div class="s2-img" data-r="img"><img src="assets/images/problem-precision.jpg" alt="Robot arms placing parts on a fixture tray" loading="lazy"></div>
+      </figure>
+      <p class="s2-body" data-r="fade">Turn hard-to-fill work into dependable capacity. Repetitive work is getting harder to staff. Lute puts robots to work where people are hardest to find. The value is the output it adds to your operation.</p>
+    </div>
+  </section>
+
+  <!-- Section 3 · How it works (Figma "section 6", 75:5615) — scroll-driven slider, 3 states -->
+  <section class="s3" id="how-it-works" aria-labelledby="s3-title">
+    <div class="s3-pin">
+      <div class="s3-frame">
+        <figure class="s3-media">
+          <div class="s3-video" data-r="img">
+            <video class="is-active" data-step="0" src="media/lute_tt_box_3x_bw.mp4" poster="assets/images/how-it-works-box-poster.jpg" muted loop playsinline preload="metadata" aria-label="Robot assembling a cardboard box on its own"></video>
+            <video data-step="1" src="media/lute_tt_tshirt_3x_bw.mp4" poster="assets/images/how-it-works-tshirt-poster.jpg" muted loop playsinline preload="metadata" aria-label="Robot folding a t-shirt at a work table"></video>
+            <video data-step="2" src="media/lute_tt_veggies_3x_bw.mp4" poster="assets/images/how-it-works-veggies-poster.jpg" muted loop playsinline preload="metadata" aria-label="Humanoid robot restocking a store shelf"></video>
+            <span class="s3-shade" aria-hidden="true"></span>
+          </div>
+          <figcaption class="mono-xs" data-r="fade">(Additional text about the video, lorem ipsum under the video)<br>Video speed 3x</figcaption>
+        </figure>
+
+        <div class="s3-copy">
+          <h2 class="s3-title" id="s3-title" aria-label="Autonomy can fail. The outcome can't.">
+            <span class="s3-eyebrow" data-r="fade">(How it works)</span>
+            <span class="s3-h" style="left:0;top:19px" data-r="line" aria-hidden="true">Autonomy </span>
+            <span class="s3-h" style="left:435px;top:19px" data-r="line" aria-hidden="true">can fail. </span>
+            <span class="s3-h" style="left:172px;top:83px" data-r="line" aria-hidden="true">The outcome can't.</span>
+          </h2>
+          <div class="s3-items" data-r="fade">
+            <div class="s3-item is-active" data-step="0">
+              <h3><span>Autonomy</span></h3>
+              <p><span>The robot operates independently, completing tasks without constant human intervention.</span></p>
+            </div>
+            <div class="s3-item" data-step="1">
+              <h3><span>Monitoring</span></h3>
+              <p><span>Continuous monitoring detects issues and identifies when human assistance is needed.</span></p>
+            </div>
+            <div class="s3-item" data-step="2">
+              <h3><span>Remote support</span></h3>
+              <p><span>A remote operator steps in when necessary to resolve issues and keep operations running reliably.</span></p>
+            </div>
+          </div>
+        </div>
+
+        <ol class="s3-index" aria-label="Steps">
+          <li><button type="button" class="is-active" data-step="0" aria-label="Step 1: Autonomy" aria-current="step">(01)</button></li>
+          <li><button type="button" data-step="1" aria-label="Step 2: Monitoring">(02)</button></li>
+          <li><button type="button" data-step="2" aria-label="Step 3: Remote support">(03)</button></li>
+        </ol>
+
+        <div class="s3-icon" aria-hidden="true"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<g>
+<path d="M37.7778 44.5831V49.8148H32.5925V44.5831H37.7778Z" fill="white"/>
+<path d="M27.4075 43.3488H22.2222V29.9591L27.4075 27.654V43.3488Z" fill="white"/>
+<path d="M37.7778 25.8799H32.5925V20.6482H37.7778V25.8799Z" fill="white"/>
+<path d="M37.7778 15.4169H32.5925V10.1852H37.7778V15.4169Z" fill="white"/>
+</g>
+</g>
+</svg></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4 · How it learns (Figma "Process", 82:16818) — the learning loop -->
+  <section class="s4" id="how-it-learns" aria-labelledby="s4-title">
+    <p class="s4-eyebrow mono-xs" data-r="fade">(How it learns)</p>
+    <h2 class="s4-title" id="s4-title" aria-label="Today's edge cases become tomorrow's capabilities.">
+      <span class="s2-line" style="left:168.87px;top:134px" aria-hidden="true"><span class="s2-pt" data-r="pt"><i></i><b>(01)</b></span><span class="s2-txt" data-r="line">Today's edge cases</span></span>
+      <span class="s2-line" style="left:479.87px;top:206px" aria-hidden="true"><span class="s2-txt" data-r="line">become</span><span class="s2-pt" data-r="pt"><i></i><b>(02)</b></span></span>
+      <span class="s2-line" style="left:40px;top:274px" aria-hidden="true"><span class="s2-pt" data-r="pt"><i></i><b>(03)</b></span><span class="s2-txt" data-r="line">tomorrow's capabilities.</span></span>
+    </h2>
+    <p class="s4-body" data-r="fade">Real work produces the situations labs miss. We capture edge cases and interventions. They become data that trains better models. Every deployment makes the system more capable.</p>
+
+    <div class="s4-board" data-r="fade">
+      <svg class="s4-spin" aria-hidden="true"></svg>
+      <svg class="s4-line" viewBox="0 0 946.206 407.998" fill="none" aria-hidden="true"><path d="M39.0556 0.99846L138.056 6.49846L294.556 42.4985L571.056 137.498L692.056 182.998L926.056 288.998L943.056 300.998H922.556L685.556 188.498L473.056 88.9985L351.056 49.9985L205.056 32.9985L130.556 36.4985L63.0556 54.4985L17.0556 92.9985L1.05557 148.498L30.0556 221.498L114.556 298.998L259.056 369.498L445.056 406.998H638.556L795.556 365.498L897.556 298.498L943.056 224.498L934.556 154.998L897.556 103.498L839.556 65.4985L758.056 42.4985L676.056 32.9985L581.556 39.4985L483.056 58.4985L314.556 115.998L81.5556 249.498L26.5556 288.998L4.05557 316.998L23.0556 330.498L105.056 310.998L387.556 209.498L761.056 61.9985L883.556 18.9985L940.556 7.99846L943.056 18.9985C933.056 27.3318 912.556 44.5985 910.556 46.9985C908.556 49.3985 862.389 75.9985 839.556 88.9985L695.056 154.998L571.056 196.998L445.056 224.498L338.056 234.498" stroke="#92C5E5" stroke-width="1.5"/></svg>
+
+      <ol class="s4-steps" aria-label="The learning loop">
+        <li class="s4-step" style="left:240px;top:60px"><button type="button" aria-expanded="false"><i></i><span class="s4-tag"><span class="s4-name">(01) Deployment</span><span class="s4-desc"><span>Robots do real work in live operations.</span></span></span></button></li>
+        <li class="s4-step" style="left:771px;top:195px"><button type="button" aria-expanded="false"><i></i><span class="s4-tag"><span class="s4-name">(02) Data</span><span class="s4-desc"><span>Edge cases and interventions get captured.</span></span></span></button></li>
+        <li class="s4-step" style="left:1058px;top:137px"><button type="button" aria-expanded="false"><i></i><span class="s4-tag"><span class="s4-name">(03) Better models</span><span class="s4-desc"><span>The data trains the next model.</span></span></span></button></li>
+        <li class="s4-step" style="left:537px;top:296px"><button type="button" aria-expanded="false"><i></i><span class="s4-tag"><span class="s4-name">(04) Better performance</span><span class="s4-desc"><span>Robots take on more work, more reliably. Then the loop starts again.</span></span></span></button></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Section 5 · Industry sectors (Figma "secction 4", 75:12315) -->
+  <section class="s5" id="industries" aria-labelledby="s5-title">
+    <div class="s5-inner">
+      <div class="s5-head">
+        <p class="mono-xs s5-eyebrow" data-r="fade">(Industry sectors)</p>
+        <h2 class="s5-title" id="s5-title" aria-label="The right solution starts with the job.">
+          <span class="s5-h" style="left:301px;top:0" data-r="line" aria-hidden="true">The right solution </span>
+          <span class="s5-h" style="left:523px;top:46px" data-r="line" aria-hidden="true">starts with the job.</span>
+        </h2>
+      </div>
+      <ul class="s5-list">
+        <li class="s5-item" data-r="row">
+          <h3 class="s5-word"><span>Manufacturing</span></h3>
+          <ul class="s5-pills s5-pills--right" aria-label="Manufacturing tasks">
+            <li>Assembly</li><li>Inspection</li><li class="s5-break">Pick and place</li>
+          </ul>
+        </li>
+        <li class="s5-item s5-item--end" data-r="row">
+          <ul class="s5-pills s5-pills--left" aria-label="Logistics tasks" style="width:193px">
+            <li>Loading</li><li>Machine tending</li>
+          </ul>
+          <h3 class="s5-word"><span>Logistics</span></h3>
+        </li>
+        <li class="s5-item" data-r="row">
+          <h3 class="s5-word"><span>Retail</span></h3>
+          <ul class="s5-pills s5-pills--right" aria-label="Retail tasks" style="width:275px">
+            <li>Replenishment</li><li>Order picking</li><li>Shelf auditing</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Section 6 · Team logos (Figma "Team logos", 75:10448) — looping marquee -->
+  <section class="s6" id="team" aria-labelledby="s6-title">
+    <h2 class="s6-title" id="s6-title" data-r="fade">Our team comes from</h2>
+    <div class="s6-viewport">
+      <ul class="s6-track" id="s6-track">
+        <li class="s6-set">
+          <span class="s6-logo s6-uw" style="width:200px"><img src="assets/logos/university-of-warsaw-emblem.png" alt="" style="width:49.68px;height:54px"><img src="assets/logos/university-of-warsaw-text.svg" alt="University of Warsaw" style="width:66.25px;height:20.17px"></span>
+          <span class="s6-logo" style="width:120px"><img src="assets/logos/esa.svg" alt="European Space Agency" style="height:47px"></span>
+          <span class="s6-logo" style="width:145px"><img src="assets/logos/imperial-college-london.svg" alt="Imperial College London" style="height:39.5px"></span>
+          <span class="s6-logo" style="width:144px"><img src="assets/logos/polyai.svg" alt="PolyAI" style="height:44px"></span>
+          <span class="s6-logo" style="width:174px"><img src="assets/logos/morgan-stanley.svg" alt="Morgan Stanley" style="height:25px"></span>
+          <span class="s6-logo" style="width:167px"><img src="assets/logos/university-of-cambridge.svg" alt="University of Cambridge" style="height:35px"></span>
+          <span class="s6-logo" style="width:67px"><img src="assets/logos/tum.svg" alt="Technical University of Munich" style="height:35px"></span>
+          <span class="s6-logo" style="width:120px"><img src="assets/logos/epfl.svg" alt="EPFL" style="height:35px"></span>
+          <span class="s6-logo" style="width:156.75px"><img src="assets/logos/samsung.svg" alt="Samsung" style="height:24px"></span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Section 7 · Blog (Figma "Blog", 75:13576) -->
+  <section class="s7" id="blog" aria-labelledby="s7-title">
+    <h2 class="s7-eyebrow mono-xs" id="s7-title" data-r="fade">(Read blog)</h2>
+    <div class="s7-grid">
+      <a class="s7-card" href="#" data-r="card">
+        <div class="s7-media">
+          <div class="s7-zoom"><img src="assets/images/blog-every-millisecond-counts.jpg" alt="Robot gripper sorting small blocks next to an open box" loading="lazy"></div>
+          <span class="s7-shade" aria-hidden="true"></span>
+        </div>
+        <div class="s7-text">
+          <p class="s7-date">(Aug 07, 2026)</p>
+          <h3 class="s7-h">Every millisecond counts</h3>
+          <p class="s7-desc">A walk through our stack from data collection to inference: where the milliseconds go.</p>
+        </div>
+        <span class="s7-arrow" aria-hidden="true"><span class="ar ar-a"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="#132F40" stroke-width="1.3"/>
+</g>
+</svg></span><span class="ar ar-b"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="white" stroke-width="1.3"/>
+</g>
+</svg></span></span>
+      </a>
+      <a class="s7-card" href="#" data-r="card">
+        <div class="s7-media s7-media--graphic">
+          <div class="s7-zoom">
+            <svg class="s7-lines" viewBox="0 0 318.068 234.784" fill="none" aria-hidden="true"><path d="M242.506 0.285689L317.135 107.477L1.13514 119.387L103.057 225.178L1.13514 234.286" stroke="#FEFEFC"/></svg>
+            <span class="s7-pt" style="left:306px;top:21px"><i></i><b>(01)</b></span>
+            <span class="s7-pt" style="left:381px;top:127px"><i></i><b>(02)</b></span>
+            <span class="s7-pt s7-pt--l" style="left:29px;top:140px"><b>(03)</b><i></i></span>
+            <span class="s7-pt" style="left:166px;top:243px"><i></i><b>(02)</b></span>
+            <span class="s7-pt s7-pt--l" style="left:30px;top:254px"><b>(01)</b><i></i></span>
+          </div>
+        </div>
+        <div class="s7-text">
+          <p class="s7-date">(Feb 25, 2026)</p>
+          <h3 class="s7-h">From the noise to the useful signal</h3>
+          <p class="s7-desc">How we are building a set of quality metrics to keep improving data quality and the performance of final policies on challenging real-world problems.</p>
+        </div>
+        <span class="s7-arrow" aria-hidden="true"><span class="ar ar-a"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="#132F40" stroke-width="1.3"/>
+</g>
+</svg></span><span class="ar ar-b"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="white" stroke-width="1.3"/>
+</g>
+</svg></span></span>
+      </a>
+      <a class="s7-card" href="#" data-r="card">
+        <div class="s7-media">
+          <div class="s7-zoom s7-zoom--map"><img src="assets/images/blog-benchmarking-visual-progress.jpg" alt="Robot arms handling objects, blue duotone" loading="lazy"></div>
+        </div>
+        <div class="s7-text">
+          <p class="s7-date">(Jan 01, 2026)</p>
+          <h3 class="s7-h">Benchmarking visual temporal progress for data curation</h3>
+          <p class="s7-desc">OpenGVL: a benchmark for estimating task progress across diverse manipulation tasks, for both robotic and human embodiments.</p>
+        </div>
+        <span class="s7-arrow" aria-hidden="true"><span class="ar ar-a"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="#132F40" stroke-width="1.3"/>
+</g>
+</svg></span><span class="ar ar-b"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="white" stroke-width="1.3"/>
+</g>
+</svg></span></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Section 8 · CTA + footer (Figma "CTA", 82:15479) -->
+  <section class="s8" id="contact" aria-labelledby="s8-title">
+    <div class="s8-headline">
+      <div class="s8-route" aria-hidden="true">
+        <svg viewBox="0 0 1221.34 344.554" fill="none"><path id="s8-route" d="M0.723134 344.355L95.2231 0.855003L676.223 101.355L327.723 109.355L417.223 227.855L1221.22 101.355" stroke="#92C5E5" stroke-width="1.5"/></svg>
+        <div class="s8-point" style="left:75px;top:340.086px"><i></i><span>(01)</span></div>
+        <div class="s8-point" style="left:169px;top:1px"><i></i><span>(02)</span></div>
+        <div class="s8-point" style="left:746px;top:100.086px"><i></i><span>(03)</span></div>
+        <div class="s8-point" style="left:401px;top:109px"><i></i><span>(04)</span></div>
+        <div class="s8-point" style="left:489px;top:227.086px"><i></i><span>(05)</span></div>
+        <div class="s8-point" style="left:1295px;top:100px"><i></i><span>(06)</span></div>
+      </div>
+      <h2 class="s8-title" id="s8-title" aria-label="Bring the work. We'll build the path to automate it.">
+        <span class="s8-line" style="left:0;top:0" aria-hidden="true">Bring the work.</span>
+        <span class="s8-line" style="left:535px;top:122px" aria-hidden="true">We'll build the path</span>
+        <span class="s8-line" style="left:144px;top:251px" aria-hidden="true">to automate it.</span>
+      </h2>
+    </div>
+    <div class="s8-row">
+      <p class="s8-copy">Bring your hardware, a preferred platform, or nothing at all.<br>We build the combination of hardware, software, and support around your workflow.</p>
+      <a class="btn btn-primary s8-btn" href="#"><span class="label"><span class="lbl"><span class="a">Talk to us</span><span class="b" aria-hidden="true">Talk to us</span></span></span><span class="tile" aria-hidden="true"><span class="ar ar-a"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="#132F40" stroke-width="1.3"/>
+</g>
+</svg></span><span class="ar ar-b"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M1 6H11M6.5 10.5L11 6L6.5 1.5" stroke="white" stroke-width="1.3"/>
+</g>
+</svg></span></span></a>
+    </div>
+  </section>
+
+  <footer class="s9" id="footer">
+    <div class="s9-brand">
+      <a class="s9-wordmark" href="#" aria-label="Lute home"><span><svg width="468" height="200" viewBox="0 0 468 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<g>
+<path d="M26.3784 155.198V8.52388e-05L0 11.7162V156.972C0 191.254 22.8695 200 46.317 200C53.6237 200 61.2607 199.133 67.9894 197.071V175.124C63.6137 175.701 58.6187 176.279 53.6237 176.279C39.8359 176.279 26.3784 172.483 26.3784 155.198Z" fill="#004D78"/>
+<path d="M189.272 134.117C189.272 160.767 172.843 174.216 149.106 174.216C125.37 174.216 108.981 160.726 108.981 134.117V43.0283H82.6029V141.708C82.6029 179.497 108.114 200 140.024 200C161.986 200 178.704 191.502 188.653 174.835H189.231V195.338H215.609V43.0283H189.231V134.117H189.272Z" fill="#004D78"/>
+<path d="M273.774 0L247.396 11.7162V156.972C247.396 191.254 270.265 200 293.713 200C301.019 200 308.656 199.133 315.385 197.071V175.123C311.009 175.701 306.014 176.279 301.019 176.279C287.232 176.279 273.774 172.483 273.774 155.198V66.4603H315.385V43.028H273.774V0Z" fill="#004D78"/>
+<path d="M467.959 115.965C467.959 69.1008 442.158 38.3666 396.171 38.3666C354.643 38.3666 327.398 65.8005 322.65 105.817C322.65 105.817 322.65 105.899 322.65 105.941C322.65 105.941 322.65 105.941 322.65 105.982C322.155 110.107 321.742 114.604 321.742 118.894C321.742 122.277 322.073 125.619 322.362 128.919C326.201 170.751 354.891 199.959 397.658 199.959C433.407 199.959 459.207 179.455 464.78 148.432H436.338C432.54 165.429 417.307 175.371 397.658 175.371C371.32 175.371 353.157 157.55 349.896 128.919H349.978V128.837H468V115.965H467.959ZM349.359 119.39C349.359 119.39 349.359 119.266 349.359 119.183C349.359 119.101 349.359 119.059 349.359 118.977C349.359 119.101 349.359 119.225 349.359 119.39ZM350.185 106.023C350.185 106.023 350.185 106.064 350.185 106.106H349.937L350.185 106.023C354.272 79.3731 370.701 62.954 396.171 62.954C421.642 62.954 437.205 78.1767 439.847 106.023H350.185Z" fill="#004D78"/>
+</g>
+</g>
+</svg></span></a>
+      <p class="s9-tagline">Put intelligence to work.</p>
+    </div>
+    <nav class="s9-cols" aria-label="Footer">
+      <ul class="s9-links">
+        <li><a href="#">Blog</a></li><li><a href="#">About us</a></li><li><a href="#">News</a></li><li><a href="#">Product</a></li>
+      </ul>
+      <div class="s9-col2">
+        <p class="s9-loc">Located in San Francisco, USA<br>and in Warsaw, Poland</p>
+        <div class="s9-social">
+          <a href="#" aria-label="Lute on LinkedIn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.5 3.24268C3.67157 3.24268 3 3.91425 3 4.74268V19.7427C3 20.5711 3.67157 21.2427 4.5 21.2427H19.5C20.3284 21.2427 21 20.5711 21 19.7427V4.74268C21 3.91425 20.3284 3.24268 19.5 3.24268H4.5ZM8.52076 7.2454C8.52639 8.20165 7.81061 8.79087 6.96123 8.78665C6.16107 8.78243 5.46357 8.1454 5.46779 7.24681C5.47201 6.40165 6.13998 5.72243 7.00764 5.74212C7.88795 5.76181 8.52639 6.40728 8.52076 7.2454ZM12.2797 10.0044H9.75971H9.7583V18.5643H12.4217V18.3646C12.4217 17.9847 12.4214 17.6047 12.4211 17.2246C12.4203 16.2108 12.4194 15.1959 12.4246 14.1824C12.426 13.9363 12.4372 13.6804 12.5005 13.4455C12.7381 12.568 13.5271 12.0013 14.4074 12.1406C14.9727 12.2291 15.3467 12.5568 15.5042 13.0898C15.6013 13.423 15.6449 13.7816 15.6491 14.129C15.6605 15.1766 15.6589 16.2242 15.6573 17.2719C15.6567 17.6417 15.6561 18.0117 15.6561 18.3815V18.5629H18.328V18.3576C18.328 17.9056 18.3278 17.4537 18.3275 17.0018C18.327 15.8723 18.3264 14.7428 18.3294 13.6129C18.3308 13.1024 18.276 12.599 18.1508 12.1054C17.9638 11.3713 17.5771 10.7638 16.9485 10.3251C16.5027 10.0129 16.0133 9.81178 15.4663 9.78928C15.404 9.78669 15.3412 9.7833 15.2781 9.77989C14.9984 9.76477 14.7141 9.74941 14.4467 9.80334C13.6817 9.95662 13.0096 10.3068 12.5019 10.9241C12.4429 10.9949 12.3852 11.0668 12.2991 11.1741L12.2797 11.1984V10.0044ZM5.68164 18.5671H8.33242V10.01H5.68164V18.5671Z" fill="#004D78"/>
+</g>
+</svg></a>
+          <a href="#" aria-label="Lute on X"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g>
+<path d="M17.1761 4.24268H19.9362L13.9061 11.0201L21 20.2427H15.4456L11.0951 14.6493L6.11723 20.2427H3.35544L9.80517 12.9935L3 4.24268H8.69545L12.6279 9.3553L17.1761 4.24268ZM16.2073 18.6181H17.7368L7.86441 5.78196H6.2232L16.2073 18.6181Z" fill="#004D78"/>
+</g>
+</svg></a>
+        </div>
+      </div>
+    </nav>
+    <div class="s9-meta">
+      <span>© 2026 Lute. All rights reserved.</span>
+      <a href="https://tonik.com" target="_blank" rel="noopener">Made by <u>Tonik</u></a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms</a>
+    </div>
+  </footer>
+
+</div>
+
+<div class="controls" role="group" aria-label="Animation controls">
+  <button type="button" id="playBtn">Replay</button>
+  <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
+  <output id="time">0.00s</output>
+  <span class="state" id="stateLbl">Slide 1</span>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('canvas');
+
+  /* ---------- fit 1440-wide canvas to viewport ---------- */
+  const chrome = $('chrome'), sections = $('sections');
+  function fit() {
+    const s = document.documentElement.clientWidth / 1440;
+    chrome.style.transform = `scale(${s})`;
+    sections.style.zoom = s;
+    sections.style.setProperty('--vhd', window.innerHeight / s + 'px');
+    const h = Math.max(window.innerHeight / s, 600);
+    canvas.style.height = h + 'px';
+    canvas.style.transform = `scale(${s})`;
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  /* ---------- split headline into characters ---------- */
+  const lines = [...document.querySelectorAll('.h-line')];
+  lines.forEach((el) => {
+    const text = el.textContent;
+    el.textContent = '';
+    for (const c of text) {
+      const s = document.createElement('span');
+      s.className = 'ch';
+      s.textContent = c === ' ' ? ' ' : c;
+      el.appendChild(s);
+    }
+  });
+
+  /* ---------- timeline (ms) ---------- */
+  const T = {
+    intro: 0,          // slide 1: bg, logo, icon
+    route: 500,        // constellation draws
+    routeDur: 2100,
+    head: 2500,        // slide 2: headline + media rises
+    rise: 2700,
+    s3: 4400,          // slide 3: media grows behind headline, points leave
+    s4: 5800,          // slide 4: full-bleed, navigation + copy
+    end: 7900
+  };
+  const E = { out: 'cubic-bezier(.16,1,.3,1)', io: 'cubic-bezier(.65,0,.35,1)', soft: 'cubic-bezier(.33,1,.68,1)' };
+  const anims = [];
+  const A = (el, kf, o) => { const a = el.animate(kf, Object.assign({ fill: 'both' }, o)); a.pause(); anims.push(a); return a; };
+
+  // master clock
+  const clockEl = document.createElement('i');
+  const master = clockEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: T.end, fill: 'both' });
+  master.pause();
+
+  function build() {
+    anims.forEach((a) => a.cancel());
+    anims.length = 0;
+
+    /* slide 1: entry */
+    A($('bg'), [{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'ease-out' });
+    A($('logo'), [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'none' }], { delay: 150, duration: 700, easing: E.out });
+    A($('luteIcon'), [{ opacity: 0 }, { opacity: 1 }], { delay: 200, duration: 600 });
+
+    // lute icon: its four blocks blink in sequence while the intro loads
+    const blocks = [...$('luteIcon').querySelectorAll('path')].reverse();
+    blocks.forEach((p, i) => {
+      A(p, [{ opacity: 1 }, { opacity: .15, offset: .3 }, { opacity: 1, offset: .6 }, { opacity: 1 }],
+        { delay: 300 + i * 120, duration: 1100, iterations: 4, easing: 'ease-in-out' });
+    });
+
+    /* constellation: route draws vertex to vertex, each point lands when the line reaches it */
+    const route = $('route');
+    const pts = [[0.58, 344.56], [282.08, 1.06], [402.58, 101.56], [228.08, 117.56], [607.58, 229.56], [1218.58, 109.06]];
+    const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
+    const total = seg.reduce((a, b) => a + b, 0);
+    const len = route.getTotalLength();
+    route.style.strokeDasharray = len;
+    // equal time per segment reads better than constant speed (last segment is very long)
+    const kf = [{ strokeDashoffset: len, offset: 0 }];
+    let acc = 0;
+    seg.forEach((l, i) => { acc += l; kf.push({ strokeDashoffset: len * (1 - acc / total), offset: (i + 1) / seg.length, easing: E.io }); });
+    kf[0].easing = E.io;
+    const segDur = T.routeDur / seg.length;
+    A(route, kf, { delay: T.route, duration: T.routeDur });
+
+    const pointEls = [...document.querySelectorAll('.point')];
+    pointEls.forEach((pt, i) => {
+      const at = T.route + i * segDur - (i === 0 ? 150 : 40);
+      A(pt.querySelector('i'), [{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1.6)', opacity: 1, offset: .55 }, { transform: 'scale(1)', opacity: 1 }],
+        { delay: at, duration: 420, easing: E.out });
+      A(pt.querySelector('span'), [{ clipPath: 'inset(0 100% 0 0)', opacity: .4 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }],
+        { delay: at + 120, duration: 320, easing: 'steps(4, end)' });
+      // slide 3: points leave in reverse order
+      A(pt, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-6px)' }],
+        { delay: T.s3 + (pointEls.length - 1 - i) * 45, duration: 380, easing: 'ease-in' });
+    });
+    A(route, [{ opacity: 1 }, { opacity: 0 }], { delay: T.s3 + 120, duration: 450, easing: 'ease-in', composite: 'replace' });
+
+    /* slide 2: headline, character by character */
+    lines.forEach((line, li) => {
+      [...line.children].forEach((ch, ci) => {
+        A(ch, [{ opacity: 0, transform: 'translateY(0.32em)', filter: 'blur(10px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }],
+          { delay: T.head + li * 170 + ci * 22, duration: 900, easing: E.out });
+      });
+      // slide 4: headline lifts away
+      A(line, [{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'translateY(-48px)', filter: 'blur(8px)' }],
+        { delay: T.s4 + li * 80, duration: 650, easing: 'cubic-bezier(.55,0,.75,.2)' });
+    });
+
+    /* media window: rise (slide 2) → grow (slide 3) → full bleed (slide 4) */
+    A($('media'), [
+      { clipPath: 'inset(100% 44px -40px 44px round 16px)', offset: 0, easing: E.out },
+      { clipPath: 'inset(calc(100% - 264px) 44px -40px 44px round 16px)', offset: (T.rise + 1100 - T.rise) / (T.s4 + 1200 - T.rise) , easing: 'linear' },
+      { clipPath: 'inset(calc(100% - 264px) 44px -40px 44px round 16px)', offset: (T.s3 - T.rise) / (T.s4 + 1200 - T.rise), easing: E.io },
+      { clipPath: 'inset(198px -50px -40px -50px round 16px)', offset: (T.s3 + 1100 - T.rise) / (T.s4 + 1200 - T.rise), easing: 'linear' },
+      { clipPath: 'inset(198px -50px -40px -50px round 16px)', offset: (T.s4 - T.rise) / (T.s4 + 1200 - T.rise), easing: E.io },
+      { clipPath: 'inset(0px 0px 0px 0px round 0px)', offset: 1 }
+    ], { delay: T.rise, duration: T.s4 + 1200 - T.rise });
+
+    // the picture travels with its window (Figma: 1412 wide @ s2, 1516 @ s3, 1440 @ s4)
+    const span = T.s4 + 1200 - T.rise;
+    const mediaKF = [
+      { transform: 'translateY(calc(100% - 18px)) scale(.98)', offset: 0, easing: E.out },
+      { transform: 'translateY(calc(100% - 282px)) scale(.98)', offset: 1100 / span, easing: 'linear' },
+      { transform: 'translateY(calc(100% - 282px)) scale(.98)', offset: (T.s3 - T.rise) / span, easing: E.io },
+      { transform: 'translateY(197px) scale(1.053)', offset: (T.s3 + 1100 - T.rise) / span, easing: 'linear' },
+      { transform: 'translateY(197px) scale(1.053)', offset: (T.s4 - T.rise) / span, easing: E.io },
+      { transform: 'translateY(0px) scale(1)', offset: 1 }
+    ];
+    A($('mediaGray'), mediaKF, { delay: T.rise, duration: span });
+
+    /* slide 4: centred wordmark slides into the navigation bar */
+    A($('naviBg'), [{ clipPath: 'inset(0 50% 0 50%)', opacity: 0 }, { clipPath: 'inset(0 0% 0 0%)', opacity: 1 }],
+      { delay: T.s4 + 500, duration: 900, easing: E.io });
+    A($('logo'), [{ transform: 'translateX(0)' }, { transform: 'translateX(-180px)' }],
+      { delay: T.s4 + 500, duration: 900, easing: E.io, composite: 'add' });
+    A($('menu'), [{ opacity: 0, transform: 'translateX(-8px)' }, { opacity: 1, transform: 'none' }],
+      { delay: T.s4 + 1100, duration: 500, easing: E.out });
+    A($('speed'), [{ opacity: 0 }, { opacity: 1 }], { delay: T.s4 + 1200, duration: 500 });
+
+    [$('lede'), $('btn1'), $('btn2')].forEach((el, i) => {
+      A(el, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }],
+        { delay: T.s4 + 900 + i * 130, duration: 800, easing: E.out });
+    });
+  }
+  build();
+
+  /* ---------- playback + scrubbing ---------- */
+  const scrub = $('scrub'), timeOut = $('time'), stateLbl = $('stateLbl'), playBtn = $('playBtn');
+  let playing = false, raf = 0;
+
+  function seek(t) {
+    master.currentTime = t;
+    anims.forEach((a) => { a.currentTime = t; });
+    render(t);
+  }
+  let render = function (t) {
+    scrub.value = Math.round((t / T.end) * 1000);
+    timeOut.textContent = (t / 1000).toFixed(2) + 's';
+    stateLbl.textContent = t < T.head ? 'Slide 1' : t < T.s3 ? 'Slide 2' : t < T.s4 ? 'Slide 3' : 'Slide 4';
+  };
+  function tick() {
+    const t = master.currentTime || 0;
+    render(t);
+    if (t >= T.end) { stop(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+  /* ---------- hero video ---------- */
+  const vMain = $('vidMain');
+  const vids = [vMain];
+  const vPlay = () => vids.forEach((v) => { const p = v.play(); if (p) p.catch(() => {}); });
+  const vPause = () => vids.forEach((v) => v.pause());
+  const vRestart = () => vids.forEach((v) => { try { v.currentTime = 0; } catch (e) {} });
+
+  function play(from) {
+    if (from === 0) vRestart();
+    vPlay();
+    if (from != null) seek(from);
+    master.play(); anims.forEach((a) => a.play());
+    playing = true; playBtn.textContent = 'Pause';
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
+  }
+  function stop() {
+    if ((master.currentTime || 0) < T.end) vPause();
+    master.pause(); anims.forEach((a) => a.pause());
+    playing = false; cancelAnimationFrame(raf);
+    playBtn.textContent = (master.currentTime || 0) >= T.end ? 'Replay' : 'Play';
+  }
+  playBtn.addEventListener('click', () => {
+    if (playing) stop();
+    else play((master.currentTime || 0) >= T.end ? 0 : master.currentTime);
+  });
+  scrub.addEventListener('input', () => { stop(); seek((scrub.value / 1000) * T.end); });
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); playBtn.click(); }
+    if (e.key === 'r' || e.key === 'R') play(0);
+  });
+
+  /* ---------- navigation open / close ---------- */
+  const menu = $('menu'), panel = $('naviPanel'), naviBg = $('naviBg');
+  const links = [...panel.querySelectorAll('.navi-links a')], rises = [...panel.querySelectorAll('.navi-links .rise')], cta = $('naviCta');
+  let navOpen = false, navAnims = [];
+  const NAV_READY = T.s4 + 1100;
+
+  function setNav(open, { instant = false } = {}) {
+    if (open === navOpen) return;
+    navOpen = open;
+    navAnims.forEach((a) => a.cancel());
+    navAnims = [];
+    menu.setAttribute('aria-expanded', String(open));
+    menu.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    panel.toggleAttribute('inert', !open);
+    const N = (el, kf, o) => { const a = el.animate(kf, Object.assign({ fill: 'forwards' }, o)); navAnims.push(a); if (instant) a.finish(); return a; };
+    const closed = 'inset(0px 0px calc(100% - 48px) 0px)', full = 'inset(0px 0px 0px 0px)';
+
+    if (open) {
+      panel.classList.add('is-open');
+      N(panel, [{ clipPath: closed }, { clipPath: full }], { duration: 650, easing: E.io });
+      rises.forEach((a, i) => N(a, [{ transform: 'translateY(105%)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+        { delay: 180 + i * 70, duration: 700, easing: E.out, fill: 'both' }));
+      N(cta, [{ transform: 'translateY(12px)', opacity: 0 }, { transform: 'none', opacity: 1 }],
+        { delay: 420, duration: 600, easing: E.out, fill: 'both' });
+      if (!instant) setTimeout(() => navOpen && links[0].focus({ preventScroll: true }), 300);
+    } else {
+      panel.classList.add('is-animating');
+      [...rises, cta].forEach((el, i) => N(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in' }));
+      const a = N(panel, [{ clipPath: full }, { clipPath: closed }], { delay: 80, duration: 520, easing: E.io });
+      a.finished.then(() => { if (!navOpen) { panel.classList.remove('is-open', 'is-animating'); navAnims.forEach((x) => x.cancel()); } }).catch(() => {});
+    }
+  }
+  menu.addEventListener('click', () => setNav(!navOpen));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navOpen) { setNav(false); menu.focus(); }
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (navOpen && !panel.contains(e.target) && !menu.contains(e.target) && !e.target.closest('.controls')) setNav(false);
+  });
+  // menu is only usable once the bar has formed
+  const _render = render;
+  render = (t) => {
+    _render(t);
+    const ready = t >= NAV_READY;
+    menu.disabled = !ready;
+    if (!ready && navOpen) setNav(false, { instant: true });
+    // the page scrolls only once the hero has landed
+    document.documentElement.classList.toggle('intro-lock', !ready);
+  };
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+  document.documentElement.classList.add('intro-lock');
+  // timeline controls only make sense while the hero is on screen
+  const controlsEl = document.querySelector('.controls');
+  new IntersectionObserver(([e]) => controlsEl.classList.toggle('is-away', !e.isIntersecting), { threshold: 0.35 }).observe($('stage'));
+
+  /* ---------- scroll reveals (section 2 onwards) ---------- */
+  (() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+    document.documentElement.classList.add('rv');
+    // order inside a section: eyebrow → headline lines (points land after their line) → images → body copy
+    const plan = (sec) => {
+      let d = 0;
+      sec.querySelectorAll('[data-r]').forEach((el) => {
+        const kind = el.dataset.r;
+        if (kind === 'line') { el.style.setProperty('--dl', d + 'ms'); d += 110; }
+        else if (kind === 'pt') { el.style.setProperty('--dl', d + 260 + 'ms'); }
+        else if (kind === 'img' || kind === 'type') { el.style.setProperty('--dl', 250 + (el.closest('.s2-bottom') ? 200 : 0) + 'ms'); }
+        else if (kind === 'fade') { el.style.setProperty('--dl', (el.closest('.s2-bottom') ? 650 : 0) + 'ms'); }
+      });
+    };
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        // tall (pinned) sections: count what is visible against the viewport, not the whole section
+        const need = Math.min(e.boundingClientRect.height, window.innerHeight) * 0.3;
+        if (!e.isIntersecting || e.intersectionRect.height < need) return;
+        e.target.querySelectorAll('[data-r]').forEach((el) => el.classList.add('in'));
+        io.unobserve(e.target);
+      });
+    }, { threshold: [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5] });
+    document.querySelectorAll('.sections > section').forEach((sec) => { plan(sec); io.observe(sec); });
+  })();
+
+  /* ---------- Section 3 · scroll-driven steps ---------- */
+  (() => {
+    const sec = document.getElementById('how-it-works');
+    if (!sec) return;
+    const vids = [...sec.querySelectorAll('.s3-video video')];
+    const items = [...sec.querySelectorAll('.s3-item')];
+    const dots = [...sec.querySelectorAll('.s3-index button')];
+    const N = items.length;
+    let step = 0, inView = false;
+
+    const playActive = () => vids.forEach((v, i) => {
+      if (i === step && inView) { const p = v.play(); if (p) p.catch(() => {}); } else v.pause();
+    });
+    function setStep(n) {
+      if (n === step) return;
+      const prev = step; step = n;
+      vids.forEach((v, i) => {
+        v.classList.toggle('is-leaving', i === prev);
+        v.classList.toggle('is-active', i === n);
+      });
+      if (vids[n]) { try { vids[n].currentTime = 0; } catch (e) {} }
+      setTimeout(() => vids[prev] && vids[prev].classList.remove('is-leaving'), 950);
+      items.forEach((it, i) => {
+        it.classList.toggle('is-active', i === n);
+        it.classList.toggle('is-past', i < n);
+      });
+      dots.forEach((d, i) => {
+        d.classList.toggle('is-active', i === n);
+        if (i === n) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current');
+      });
+      playActive();
+    }
+    function progress() {
+      const r = sec.getBoundingClientRect();
+      const run = r.height - window.innerHeight;
+      const p = run > 0 ? Math.min(1, Math.max(0, -r.top / run)) : 0;
+      setStep(Math.min(N - 1, Math.floor(p * N)));
+    }
+    let ticking = false;
+    window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; progress(); }); } }, { passive: true });
+    window.addEventListener('resize', progress);
+    new IntersectionObserver(([e]) => { inView = e.isIntersecting; playActive(); }, { threshold: 0.1 }).observe(sec);
+    // index buttons scroll to the middle of their step
+    dots.forEach((d, i) => d.addEventListener('click', () => {
+      const r = sec.getBoundingClientRect();
+      const run = r.height - window.innerHeight;
+      window.scrollTo({ top: window.scrollY + r.top + run * ((i + 0.5) / N), behavior: 'smooth' });
+    }));
+    progress();
+  })();
+
+  /* ---------- Section 4 · learning loop: the line draws itself, then turns in 3D; step tags ride on it ---------- */
+  (() => {
+    const sec = document.getElementById('how-it-learns');
+    if (!sec) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const path = sec.querySelector('.s4-line path');
+    const flat = sec.querySelector('.s4-line');
+    const spin = sec.querySelector('.s4-spin');
+    const steps = [...sec.querySelectorAll('.s4-step')];
+    const LINE_X = 201.5, LINE_Y = 62;           // where the Figma line sits in the board
+
+    /* --- sample the Figma path (this exact line is what turns; its shape never changes) --- */
+    const L = path.getTotalLength();
+    const N = 480;
+    const pts = [];
+    for (let i = 0; i <= N; i++) { const p = path.getPointAtLength((i / N) * L); pts.push({ x: p.x, y: p.y, s: i / N }); }
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    pts.forEach((p) => { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); });
+    const CX = (minX + maxX) / 2, CY = (minY + maxY) / 2;
+
+    /* --- motion from the 3D Ribbon Generator: the drawing lies flat and the camera orbits around the vertical
+           axis, looking down at 30° through a 45° lens. At the start pose the projection is exactly the Figma line. --- */
+    // values taken from the 3D Ribbon Generator (Figma Make): camera orbits the vertical axis at polar angle π/3
+    // (looking down 30°), distance = 2× the object's size (object 3 units wide, camera at 6), 45° lens.
+    const MOT = { elev: Math.PI / 4, bob: 0.1, period: 26000, camDist: 1.6 * (maxX - minX), H: 95 };
+    const SE0 = Math.sin(MOT.elev), CE0 = Math.cos(MOT.elev);
+    // real depth: the loop is not flat — it rises and falls along its length (like the generator's default ribbon).
+    // Each point is placed in 3D so that, seen from the start camera, it lands exactly on the Figma line.
+    pts.forEach((p) => {
+      p.h = MOT.H * Math.sin(p.s * Math.PI * 2 * 1.3 + 0.8);          // height above the floor plane
+      p.X = p.x - CX;
+      p.Z = ((p.y - CY) + p.h * CE0) / SE0;                           // floor position that projects onto the Figma line
+    });
+    function pose(i, th, ph, kp) {
+      const p = pts[i];
+      const ct = Math.cos(th), st = Math.sin(th);
+      const xr = p.X * ct - p.Z * st, zr = p.X * st + p.Z * ct;       // camera orbits the vertical axis
+      const e = MOT.elev + kp * MOT.bob * Math.sin(ph);               // and rises/dips a little to show the height
+      const se = Math.sin(e), ce = Math.cos(e);
+      const y = zr * se - p.h * ce;                                   // screen y (down = nearer the bottom)
+      const depth = zr * ce + p.h * se;                               // towards the camera = positive
+      const persp = 1 + kp * (MOT.camDist / (MOT.camDist - depth) - 1);
+      return { x: xr * persp, y: y * persp, z: depth };
+    }
+    // framing: like a camera operator, the view gently zooms/pans to keep the turning loop (and its tags) inside the board
+    const FIT = { x0: 40, x1: 1360 - 230, y0: 24, y1: 545 - 96 };
+    let R = 1;
+    for (let t = 0; t < 24; t++) for (let i = 0; i <= N; i += 8) R = Math.max(R, Math.abs(pose(i, (t / 24) * Math.PI * 2, 0, 1).z));
+    const cam = { s: 1, cx: CX, cy: CY };           // current framing (scale + centre, line space)
+
+    /* --- dock each tag (its square) to the nearest point of the line; it stays on that point --- */
+    const docks = steps.map((li) => {
+      const left = parseFloat(li.style.left), top = parseFloat(li.style.top);
+      const sx = left + 4 - LINE_X, sy = top + 4 - LINE_Y;
+      let best = 0, bd = Infinity;
+      pts.forEach((p, i) => { const d = (p.x - sx) ** 2 + (p.y - sy) ** 2; if (d < bd) { bd = d; best = i; } });
+      li.style.left = '0px'; li.style.top = '0px';
+      return best;
+    });
+
+    /* --- draw in chunks so the far side can fade back --- */
+    const CH = 60, per = N / CH;
+    const chunks = [];
+    for (let c = 0; c < CH; c++) { const pl = document.createElementNS(SVGNS, 'polyline'); spin.appendChild(pl); chunks.push(pl); }
+    spin.style.visibility = 'hidden';
+
+    let theta = 0, k = 0, clock = 0;             // spin angle, 0→1 ease-in of the 3D motion, running time
+    function frame() {
+      const ph = (clock / MOT.period) * Math.PI * 2;
+      const raw = [];
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (let i = 0; i <= N; i++) {
+        const q = pose(i, theta, ph, k); raw.push(q);
+        if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x; if (q.y < y0) y0 = q.y; if (q.y > y1) y1 = q.y;
+      }
+      // target framing for this pose; ease towards it so the "camera" moves smoothly
+      const ts = Math.min(1, (FIT.x1 - FIT.x0) / (x1 - x0), (FIT.y1 - FIT.y0) / (y1 - y0));
+      const tcx = (FIT.x0 + FIT.x1) / 2 - LINE_X - ts * (x0 + x1) / 2;
+      const tcy = (FIT.y0 + FIT.y1) / 2 - LINE_Y - ts * (y0 + y1) / 2;
+      if (k <= 0) { cam.s = 1; cam.cx = CX; cam.cy = CY; }
+      else {
+        const f = 0.035 * k;
+        cam.s += (Math.min(cam.s, ts) === ts && ts < cam.s ? (ts - cam.s) * Math.max(f, 0.12) : (ts - cam.s) * f); // zoom out faster than in
+        cam.cx += (tcx - cam.cx) * Math.max(f, 0.06); cam.cy += (tcy - cam.cy) * Math.max(f, 0.06);
+      }
+      const ox = k <= 0 ? CX : cam.cx, oy = k <= 0 ? CY : cam.cy;
+      return raw.map((q) => ({ x: ox + q.x * cam.s, y: oy + q.y * cam.s, z: q.z * k }));
+    }
+    function render() {
+      const P = frame();
+      for (let c = 0; c < CH; c++) {
+        const a = Math.floor(c * per), b = Math.min(N, Math.floor((c + 1) * per) + 1);
+        let str = '', zs = 0;
+        for (let i = a; i <= b; i++) { str += P[i].x.toFixed(1) + ',' + P[i].y.toFixed(1) + ' '; zs += P[i].z; }
+        chunks[c].setAttribute('points', str);
+        const depth = Math.max(0, Math.min(1, (zs / (b - a + 1) + R) / (2 * R)));
+        chunks[c].style.opacity = (1 - k * (1 - (0.22 + 0.78 * depth))).toFixed(3);
+        chunks[c].style.strokeWidth = (1.5 + k * (0.7 + 1.8 * depth - 1.5)).toFixed(2);   // nearer = thicker
+      }
+      steps.forEach((li, i) => {
+        const q = P[docks[i]];
+        li.style.transform = `translate(${(q.x + LINE_X - 4).toFixed(1)}px, ${(q.y + LINE_Y - 4).toFixed(1)}px)`;
+        const depth = Math.max(0, Math.min(1, (q.z + R) / (2 * R)));
+        li.style.opacity = li.classList.contains('is-active') ? 1 : (1 - k * (1 - (0.72 + 0.28 * depth))).toFixed(3);
+      });
+    }
+    render(); // tags sit on the line from the start
+
+    /* --- step cycle (hover/focus opens a step and pauses) --- */
+    let active = -1, timer = 0, hovering = false, inView = false, started = false;
+    function setActive(n) {
+      active = n;
+      steps.forEach((s, i) => { s.classList.toggle('is-active', i === n); s.querySelector('button').setAttribute('aria-expanded', String(i === n)); });
+    }
+    const CYCLE = 4200;
+    function schedule() {
+      clearTimeout(timer);
+      if (hovering || !inView || reduce) return;
+      timer = setTimeout(() => { setActive((active + 1) % steps.length); schedule(); }, CYCLE);
+    }
+    steps.forEach((s, i) => {
+      const b = s.querySelector('button');
+      const enter = () => { hovering = true; clearTimeout(timer); setActive(i); };
+      const leave = () => { hovering = false; schedule(); };
+      b.addEventListener('mouseenter', enter); b.addEventListener('focus', enter);
+      b.addEventListener('mouseleave', leave); b.addEventListener('blur', leave);
+      b.addEventListener('click', () => setActive(i));
+    });
+
+    /* --- rotation loop --- */
+    let raf = 0, last = 0, spinStart = 0;
+    const PERIOD = 26000;                         // one spin about the loop's axis
+    function loop(now) {
+      if (!last) last = now;
+      const dt = Math.min(64, now - last); last = now;
+      const t = now - spinStart;
+      k = Math.min(1, t / 3500); k = k * k * (3 - 2 * k);           // ease the 3D motion in
+      theta += (dt / PERIOD) * Math.PI * 2 * k;                     // spin, easing up to speed
+      clock += dt * k;
+      render();
+      raf = inView ? requestAnimationFrame(loop) : 0;
+    }
+    function startSpin() {
+      flat.style.visibility = 'hidden'; spin.style.visibility = 'visible';
+      spinStart = performance.now(); last = 0;
+      if (!raf && inView) raf = requestAnimationFrame(loop);
+    }
+
+    function start() {
+      if (started) return; started = true;
+      if (reduce) { steps.forEach((s) => s.classList.add('in')); setActive(3); return; }
+      path.style.strokeDasharray = L;
+      // the line draws at an even pen speed; each tag lands when the line reaches it
+      const DRAW = 5200;
+      const draw = path.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: DRAW, easing: 'linear', fill: 'both' });
+      steps.forEach((s, i) => setTimeout(() => s.classList.add('in'), DRAW * (docks[i] / N)));
+      draw.finished.then(() => { setActive(0); schedule(); startSpin(); }).catch(() => {});
+    }
+    new IntersectionObserver(([e]) => {
+      inView = e.isIntersecting && e.intersectionRatio > 0.2;
+      if (inView && e.intersectionRatio > 0.35) start();
+      if (started && spinStart && inView && !raf) { last = 0; raf = requestAnimationFrame(loop); }
+      if (started) schedule();
+    }, { threshold: [0, 0.2, 0.35, 0.6] }).observe(sec.querySelector('.s4-board'));
+  })();
+
+  /* ---------- Section 5 · stagger indexes for rows and pills ---------- */
+  document.querySelectorAll('#industries .s5-item').forEach((row, r) => {
+    row.style.setProperty('--dl', 200 + r * 140 + 'ms');
+    row.querySelectorAll('.s5-pills li').forEach((p, i) => p.style.setProperty('--i', i));
+  });
+
+  /* ---------- Section 6 · logo marquee: duplicate the set, speed in px/s ---------- */
+  (() => {
+    const track = document.getElementById('s6-track');
+    if (!track || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const set = track.querySelector('.s6-set');
+    const copy = set.cloneNode(true);
+    copy.setAttribute('aria-hidden', 'true');
+    copy.querySelectorAll('img').forEach((i) => { i.alt = ''; });
+    track.appendChild(copy);
+    const SPEED = 45; // design px per second
+    track.style.setProperty('--s6-dur', (set.offsetWidth / SPEED).toFixed(1) + 's');
+    track.classList.add('is-running');
+    // run only while visible
+    new IntersectionObserver(([e]) => { track.style.animationPlayState = e.isIntersecting ? '' : 'paused'; }).observe(track);
+  })();
+
+  document.querySelectorAll('#blog .s7-card').forEach((c, i) => c.style.setProperty('--dl', 120 + i * 140 + 'ms'));
+
+  /* ---------- Section 8 · CTA: route draws point to point (like the hero), then headline, copy, button ---------- */
+  (() => {
+    const sec = document.getElementById('contact');
+    const foot = document.getElementById('footer');
+    if (!sec) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window);
+    const lines = [...sec.querySelectorAll('.s8-line')];
+    lines.forEach((el) => { const t = el.textContent; el.textContent = ''; for (const c of t) { const s = document.createElement('span'); s.className = 'ch'; s.textContent = c === ' ' ? ' ' : c; el.appendChild(s); } });
+    const route = document.getElementById('s8-route');
+    const pts = [...sec.querySelectorAll('.s8-point')];
+    if (reduce) return;
+
+    const E = { io: 'cubic-bezier(.65,0,.35,1)', out: 'cubic-bezier(.16,1,.3,1)' };
+    const hide = () => {
+      route.style.strokeDasharray = route.getTotalLength(); route.style.strokeDashoffset = route.getTotalLength();
+      pts.forEach((p) => { p.querySelector('i').style.transform = 'scale(0)'; p.querySelector('span').style.clipPath = 'inset(0 100% 0 0)'; });
+      lines.forEach((l) => [...l.children].forEach((c) => { c.style.opacity = 0; }));
+    };
+    hide();
+
+    function play() {
+      sec.classList.add('is-on');
+      const len = route.getTotalLength();
+      const v = [[0.72, 344.36], [95.22, 0.86], [676.22, 101.36], [327.72, 109.36], [417.22, 227.86], [1221.22, 101.36]];
+      const seg = v.slice(1).map((p, i) => Math.hypot(p[0] - v[i][0], p[1] - v[i][1]));
+      const total = seg.reduce((a, b) => a + b, 0);
+      const DUR = 2100, segDur = DUR / seg.length;
+      const kf = [{ strokeDashoffset: len, offset: 0, easing: E.io }];
+      let acc = 0;
+      seg.forEach((l, i) => { acc += l; kf.push({ strokeDashoffset: len * (1 - acc / total), offset: (i + 1) / seg.length, easing: E.io }); });
+      route.animate(kf, { duration: DUR, fill: 'forwards' });
+      pts.forEach((p, i) => {
+        const at = i * segDur + (i === 0 ? 0 : -40);
+        p.querySelector('i').animate([{ transform: 'scale(0)' }, { transform: 'scale(1.6)', offset: .55 }, { transform: 'scale(1)' }], { delay: at, duration: 420, easing: E.out, fill: 'forwards' });
+        p.querySelector('span').animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { delay: at + 120, duration: 320, easing: 'steps(4, end)', fill: 'forwards' });
+      });
+      // headline: character by character, as in the hero
+      const H = DUR - 300;
+      let last = 0;
+      lines.forEach((l, li) => [...l.children].forEach((c, ci) => {
+        const d = H + li * 170 + ci * 20; last = Math.max(last, d);
+        c.animate([{ opacity: 0, transform: 'translateY(0.32em)', filter: 'blur(10px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { delay: d, duration: 900, easing: E.out, fill: 'forwards' });
+      }));
+      sec.style.setProperty('--copy-dl', last + 300 + 'ms');
+    }
+    let done = false;
+    new IntersectionObserver(([e]) => {
+      if (done || !e.isIntersecting || e.intersectionRatio < 0.45) return;
+      done = true; play();
+    }, { threshold: [0, 0.45, 0.7] }).observe(sec);
+
+    // footer
+    if (foot) {
+      [...foot.querySelectorAll('.s9-tagline, .s9-links li, .s9-loc, .s9-social, .s9-meta')].forEach((el, i) => el.style.setProperty('--dl', 200 + i * 70 + 'ms'));
+      new IntersectionObserver(([e], o) => { if (e.isIntersecting && e.intersectionRatio > 0.3) { foot.classList.add('is-on'); o.disconnect(); } }, { threshold: [0, 0.3, 0.6] }).observe(foot);
+    }
+  })();
+
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const start = () => (reduce ? (seek(T.end), stop(), vPause()) : play(0));
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(start, 250));
+})();
+</script>
+
+</body>
+</html>
