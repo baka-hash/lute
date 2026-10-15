@@ -347,7 +347,15 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 /* 12-column grid (95 px columns, 20 px gutters): eyebrow 2 cols, one wide card (4 cols = 440) and two narrow cards
    (3 cols = 325). Slider: cards move right → left, grow to 4 cols in the first slot, then slide out under the left mask */
 .s7 { position: relative; background: var(--lute-white); padding: 80px 40px 120px; display: flex; gap: 20px; justify-content: flex-end; align-items: flex-start; }
-.s7-eyebrow { flex: 1 1 0; min-width: 0; margin: 0; font-weight: 400; }
+/* left column (2 cols): eyebrow at the top, slider indicator at the bottom */
+.s7-side { flex: 1 1 0; min-width: 0; height: 247px; display: flex; flex-direction: column; justify-content: space-between; }
+.s7-eyebrow { margin: 0; font-weight: 400; }
+.s7-dots { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.s7-dots button { display: block; width: 8px; height: 8px; padding: 0; border: 0; background: var(--lute-ice); cursor: pointer;
+  transition: background-color .4s var(--ease-out); }
+.s7-dots button.is-active { background: var(--lute-black); }
+.s7-dots button:hover:not(.is-active) { background: var(--lute-blue); }
+.s7-dots button:focus-visible { outline: 2px solid var(--lute-blue); outline-offset: 2px; }
 .s7-card { flex: none; width: 325px; display: flex; flex-direction: column; gap: 20px; color: var(--lute-black); text-decoration: none; }
 .s7-card:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 6px; }
 

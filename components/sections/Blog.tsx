@@ -87,14 +87,19 @@ const SLOTS = [
 ];
 const ITEMS = [...POSTS, ...POSTS]; // two laps so a card can leave on the left while another enters on the right
 const STEP = 4000;
+const JUMP_STEP = 450; // a dot click walks the slider one card at a time, so cards never skip a slot
 
-function Slider() {
-  const ref = useRef<HTMLDivElement>(null);
+export default function Blog() {
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
+  const [target, setTarget] = useState<number | null>(null);
+  const [cycleKey, setCycleKey] = useState(0); // bumped by a dot click so autoplay waits a full step again
+  const active = ((offset % POSTS.length) + POSTS.length) % POSTS.length; // post in the first (wide) slot
 
+  // autoplay: one step every 4 s while the slider is on screen and not hovered
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const el = ref.current!;
+    const el = viewportRef.current!;
     let inView = false, hovering = false, timer = 0;
     const schedule = () => {
       clearTimeout(timer);
@@ -112,33 +117,59 @@ function Slider() {
       el.removeEventListener("mouseenter", enter);
       el.removeEventListener("mouseleave", leave);
     };
-  }, []);
+  }, [cycleKey]);
 
-  return (
-    <div className="s7-viewport" ref={ref} data-r="card" style={{ "--dl": "120ms" } as CSSProperties}>
-      {ITEMS.map((post, i) => {
-        const slot = (((i - offset) % ITEMS.length) + ITEMS.length) % ITEMS.length;
-        const { x, w } = SLOTS[slot];
-        return (
-          <Card
-            key={i}
-            post={post}
-            wide={slot === 0}
-            hidden={slot > 2}
-            data-slot={slot}
-            style={{ "--x": `${x}px`, "--w": `${w}px` } as CSSProperties}
-          />
-        );
-      })}
-    </div>
-  );
-}
+  // dot click: step forward until the chosen post sits in the first slot
+  useEffect(() => {
+    if (target === null) return;
+    if (offset >= target) { setTarget(null); return; }
+    const t = window.setTimeout(() => setOffset((o) => o + 1), JUMP_STEP);
+    return () => clearTimeout(t);
+  }, [offset, target]);
 
-export default function Blog() {
+  const goTo = (post: number) => {
+    const steps = (post - active + POSTS.length) % POSTS.length;
+    if (!steps) return;
+    setOffset((o) => o + 1); // first step right away
+    setTarget(offset + steps);
+    setCycleKey((k) => k + 1);
+  };
+
   return (
     <section className="s7" id="blog" aria-labelledby="s7-title">
-      <h2 className="s7-eyebrow mono-xs" id="s7-title" data-r="fade">(Read blog)</h2>
-      <Slider />
+      <div className="s7-side">
+        <h2 className="s7-eyebrow mono-xs" id="s7-title" data-r="fade">(Read blog)</h2>
+        {/* slider indicator (Figma 121:23675): the black square marks the post in the wide slot */}
+        <ol className="s7-dots" aria-label="Blog posts" data-r="fade">
+          {POSTS.map((post, i) => (
+            <li key={post.title}>
+              <button
+                type="button"
+                className={i === active ? "is-active" : undefined}
+                aria-label={`Show post ${i + 1}: ${post.title}`}
+                aria-current={i === active ? "true" : undefined}
+                onClick={() => goTo(i)}
+              />
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div className="s7-viewport" ref={viewportRef} data-r="card" style={{ "--dl": "120ms" } as CSSProperties}>
+        {ITEMS.map((post, i) => {
+          const slot = (((i - offset) % ITEMS.length) + ITEMS.length) % ITEMS.length;
+          const { x, w } = SLOTS[slot];
+          return (
+            <Card
+              key={i}
+              post={post}
+              wide={slot === 0}
+              hidden={slot > 2}
+              data-slot={slot}
+              style={{ "--x": `${x}px`, "--w": `${w}px` } as CSSProperties}
+            />
+          );
+        })}
+      </div>
     </section>
   );
 }

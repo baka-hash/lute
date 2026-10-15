@@ -60,7 +60,6 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
     speed: useRef<HTMLDivElement>(null),
     lede: useRef<HTMLParagraphElement>(null),
     btn1: useRef<HTMLAnchorElement>(null),
-    btn2: useRef<HTMLAnchorElement>(null),
     icon: useRef<HTMLDivElement>(null),
     naviBg: useRef<HTMLDivElement>(null),
     logo: useRef<HTMLAnchorElement>(null),
@@ -136,7 +135,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
     });
 
     // copy, then the buttons
-    [el(r.lede), el(r.btn1), el(r.btn2)].forEach((target, i) => {
+    [el(r.lede), el(r.btn1)].forEach((target, i) => {
       A(target, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }],
         { delay: T.copy + i * 150, duration: 800, easing: E.out });
     });
@@ -314,7 +313,6 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
             </p>
             <div className="buttons">
               <Button ref={r.btn1} variant="primary" href="#">Talk to us</Button>
-              <Button ref={r.btn2} variant="secondary" href="#">See how Lute learns</Button>
             </div>
           </div>
 
