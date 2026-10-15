@@ -20,17 +20,20 @@ const TWIST = 2.5;
 
 const CAMERA_RADIUS = 4.4;
 const STRETCH_X = 2; // the loop is drawn twice as wide on screen without getting taller
+const STRETCH_Y = 1.1; // and 10% taller
 const RIBBON_COLOR = "#004D78"; // Lute Blue
 const LABEL_EDGE = 16; // keep labels this far inside the board's right edge
 const CAMERA_PHI = Math.PI / 3; // looking down 30°
-const ROTATE_SPEED = 0.0016; // radians per frame
+const ROTATE_SPEED = 0.00152; // radians per frame
 const CYCLE_MS = 4200;
 
+// t = position along the loop. The loop makes two turns, so t and t + 0.5 point the same way and their labels
+// would cover each other; these sit in four different directions (about a quarter turn apart, unevenly).
 const STEPS = [
-  { name: "(01) Deployment", desc: "Robots do real work in live operations.", t: 0.08 },
-  { name: "(02) Data", desc: "Edge cases and interventions get captured.", t: 0.32 },
-  { name: "(03) Better models", desc: "The data trains the next model.", t: 0.58 },
-  { name: "(04) Better performance", desc: "Robots take on more work, more reliably. Then the loop starts again.", t: 0.82 },
+  { name: "(01) Deployment", desc: "Robots do real work in live operations.", t: 0.025 },
+  { name: "(02) Data", desc: "Edge cases and interventions get captured.", t: 0.3 },
+  { name: "(03) Better models", desc: "The data trains the next model.", t: 0.65 },
+  { name: "(04) Better performance", desc: "Robots take on more work, more reliably. Then the loop starts again.", t: 0.925 },
 ];
 
 /* closed curve: every term repeats exactly at t = 1, so the end meets the start */
@@ -143,8 +146,9 @@ export default function HowItLearns() {
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      // widen the picture horizontally only; labels project through the same matrix, so they stay on the curve
+      // stretch the picture (wider, a little taller); labels project through the same matrix, so they stay on the curve
       camera.projectionMatrix.elements[0] *= STRETCH_X;
+      camera.projectionMatrix.elements[5] *= STRETCH_Y;
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     };
 
