@@ -53,9 +53,9 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
     mediaGray: useRef<HTMLDivElement>(null),
     video: useRef<HTMLVideoElement>(null),
     speed: useRef<HTMLDivElement>(null),
+    copyHead: useRef<HTMLParagraphElement>(null),
     lede: useRef<HTMLParagraphElement>(null),
     btn1: useRef<HTMLAnchorElement>(null),
-    btn2: useRef<HTMLAnchorElement>(null),
     icon: useRef<HTMLDivElement>(null),
     naviBg: useRef<HTMLDivElement>(null),
     logo: useRef<HTMLAnchorElement>(null),
@@ -128,24 +128,20 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
         { delay: T.s4 + li * 80, duration: 650, easing: "cubic-bezier(.55,0,.75,.2)" });
     });
 
-    /* media window: rise (slide 2) → grow (slide 3) → full bleed (slide 4) */
+    /* media window: rises as a strip (slide 2), then grows in one move to full bleed (from slide 3 to slide 4) */
     const span = T.s4 + 1200 - T.rise;
     A(el(r.media), [
       { clipPath: "inset(100% 44px -40px 44px round 16px)", offset: 0, easing: E.out },
       { clipPath: "inset(calc(100% - 264px) 44px -40px 44px round 16px)", offset: 1100 / span, easing: "linear" },
       { clipPath: "inset(calc(100% - 264px) 44px -40px 44px round 16px)", offset: (T.s3 - T.rise) / span, easing: E.io },
-      { clipPath: "inset(198px -50px -40px -50px round 16px)", offset: (T.s3 + 1100 - T.rise) / span, easing: "linear" },
-      { clipPath: "inset(198px -50px -40px -50px round 16px)", offset: (T.s4 - T.rise) / span, easing: E.io },
       { clipPath: "inset(0px 0px 0px 0px round 0px)", offset: 1 },
     ], { delay: T.rise, duration: span });
 
-    // the picture travels with its window (Figma: 1412 wide @ s2, 1516 @ s3, 1440 @ s4)
+    // the picture travels with its window (Figma: 1412 wide @ s2, 1440 @ s4)
     A(el(r.mediaGray), [
       { transform: "translateY(calc(100% - 18px)) scale(.98)", offset: 0, easing: E.out },
       { transform: "translateY(calc(100% - 282px)) scale(.98)", offset: 1100 / span, easing: "linear" },
       { transform: "translateY(calc(100% - 282px)) scale(.98)", offset: (T.s3 - T.rise) / span, easing: E.io },
-      { transform: "translateY(197px) scale(1.053)", offset: (T.s3 + 1100 - T.rise) / span, easing: "linear" },
-      { transform: "translateY(197px) scale(1.053)", offset: (T.s4 - T.rise) / span, easing: E.io },
       { transform: "translateY(0px) scale(1)", offset: 1 },
     ], { delay: T.rise, duration: span });
 
@@ -158,7 +154,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
       { delay: T.s4 + 1100, duration: 500, easing: E.out });
     A(el(r.speed), [{ opacity: 0 }, { opacity: 1 }], { delay: T.s4 + 1200, duration: 500 });
 
-    [el(r.lede), el(r.btn1), el(r.btn2)].forEach((target, i) => {
+    [el(r.copyHead), el(r.lede), el(r.btn1)].forEach((target, i) => {
       A(target, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }],
         { delay: T.s4 + 900 + i * 130, duration: 800, easing: E.out });
     });
@@ -320,12 +316,14 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
           <div className="speed" ref={r.speed}>Video speed 3x</div>
 
           <div className="copy">
-            <p ref={r.lede}>
-              Lute combines physical AI software, monitoring, and remote support. Together they turn emerging capabilities into work businesses can rely on today.
-            </p>
+            <div className="copy-text">
+              <p className="copy-h" ref={r.copyHead}>Make the impossible operational</p>
+              <p ref={r.lede}>
+                Lute combines physical AI software, monitoring, and remote support. Together they turn emerging capabilities into work businesses can rely on today.
+              </p>
+            </div>
             <div className="buttons">
               <Button ref={r.btn1} variant="primary" href="#">Talk to us</Button>
-              <Button ref={r.btn2} variant="secondary" href="#">See how Lute learns</Button>
             </div>
           </div>
 
