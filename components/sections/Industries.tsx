@@ -1,52 +1,69 @@
 import type { CSSProperties } from "react";
+import { Point } from "./Problem";
 
-/* Section 5 · Industry sectors (Figma "secction 4", 75:12315), 1440 × 736 */
+/* Section 5 · Industry sectors (v2 layout, Figma 75:11879), 1440 × 578 */
 
-const ROWS = [
-  { word: "Manufacturing", tasks: ["Assembly", "Inspection", "Pick and place"], side: "right" as const },
-  { word: "Logistics", tasks: ["Loading", "Machine tending"], side: "left" as const, width: 193 },
-  { word: "Retail", tasks: ["Replenishment", "Order picking", "Shelf auditing"], side: "right" as const, width: 275 },
+const SECTORS = [
+  {
+    word: "Manufacturing",
+    tasks: ["Assembly", "Inspection", "Pick and place"],
+    img: "/assets/images/industry-manufacturing.png",
+    position: "50% 100%",
+  },
+  {
+    word: "Logistics",
+    tasks: ["Loading", "Machine tending"],
+    img: "/assets/images/industry-logistics.png",
+    position: "50% 50%",
+  },
+  {
+    word: "Retail",
+    tasks: ["Order picking", "Replenishment", "Shelf auditing"],
+    img: "/assets/images/industry-retail.png",
+    position: "50% 100%",
+  },
 ];
 
 export default function Industries() {
   return (
     <section className="s5" id="industries" aria-labelledby="s5-title">
-      <div className="s5-inner">
-        <div className="s5-head">
-          <p className="mono-xs s5-eyebrow" data-r="fade">(Industry sectors)</p>
-          <h2 className="s5-title" id="s5-title" aria-label="The right solution starts with the job.">
-            <span className="s5-h" style={{ left: 301, top: 0 }} data-r="line" aria-hidden="true">The right solution </span>
-            <span className="s5-h" style={{ left: 523, top: 46 }} data-r="line" aria-hidden="true">starts with the job.</span>
-          </h2>
-        </div>
-        <ul className="s5-list">
-          {ROWS.map((row, r) => {
-            const word = <h3 className="s5-word"><span>{row.word}</span></h3>;
-            // rows rise in turn; pills follow inside their row
-            const pills = (
-              <ul
-                className={`s5-pills s5-pills--${row.side}`}
-                aria-label={`${row.word} tasks`}
-                style={row.width ? { width: row.width } : undefined}
-              >
-                {row.tasks.map((t, i) => (
-                  <li key={t} className={row.word === "Manufacturing" && i === 2 ? "s5-break" : undefined} style={{ "--i": i } as CSSProperties}>{t}</li>
+      <p className="mono-xs s5-eyebrow" data-r="fade">(Industry sectors)</p>
+      <h2 className="s5-title" id="s5-title" aria-label="The right solution starts with the job.">
+        <span className="s2-line" style={{ left: 40, top: 134 }} aria-hidden="true">
+          <span className="s2-txt" data-r="line">The right solution </span>
+          <Point n="01" />
+        </span>
+        <span className="s2-line" style={{ left: 144.5, top: 210 }} aria-hidden="true">
+          <Point n="02" />
+          <span className="s2-txt" data-r="line">starts with </span>
+        </span>
+        <span className="s2-line" style={{ left: 569.13, top: 210 }} aria-hidden="true">
+          <span className="s2-txt" data-r="line">the job.</span>
+          <Point n="03" />
+        </span>
+      </h2>
+      <p className="s5-body" data-r="fade">
+        Bring your hardware, a preferred platform, or nothing at all. We build the combination of hardware, software, and support around your workflow.
+      </p>
+
+      <ul className="s5-list">
+        {SECTORS.map((s, r) => (
+          // cards rise in turn; photo, word and pills follow inside each card
+          <li key={s.word} className="s5-item" data-r="row" style={{ "--dl": `${200 + r * 140}ms` } as CSSProperties}>
+            <div className="s5-img">
+              <img src={s.img} alt="" style={{ objectPosition: s.position }} loading="lazy" />
+            </div>
+            <div className="s5-content">
+              <h3 className="s5-word"><span>{s.word}</span></h3>
+              <ul className="s5-pills" aria-label={`${s.word} tasks`}>
+                {s.tasks.map((t, i) => (
+                  <li key={t} style={{ "--i": i } as CSSProperties}>{t}</li>
                 ))}
               </ul>
-            );
-            return (
-              <li
-                key={row.word}
-                className={row.side === "left" ? "s5-item s5-item--end" : "s5-item"}
-                data-r="row"
-                style={{ "--dl": `${200 + r * 140}ms` } as CSSProperties}
-              >
-                {row.side === "left" ? <>{pills}{word}</> : <>{word}{pills}</>}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
