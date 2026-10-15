@@ -18,6 +18,9 @@ const PATH_RADIUS = 1.5;
 const TWIST = 2.5;
 
 const CAMERA_RADIUS = 4.4;
+const STRETCH_X = 2; // the loop is drawn twice as wide on screen without getting taller
+const RIBBON_COLOR = "#004D78"; // Lute Blue
+const LABEL_EDGE = 16; // keep labels this far inside the board's right edge
 const CAMERA_PHI = Math.PI / 3; // looking down 30°
 const ROTATE_SPEED = 0.002; // radians per frame
 const CYCLE_MS = 4200;
@@ -125,8 +128,6 @@ export default function HowItLearns() {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setClearColor(0x000000, 0); // the gradient behind the canvas is plain CSS (50% opacity)
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
     container.prepend(renderer.domElement);
 
     // the page is drawn in 1440-px units and zoomed to the viewport, so render at the zoomed pixel density
@@ -139,6 +140,9 @@ export default function HowItLearns() {
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
+      // widen the picture horizontally only; labels project through the same matrix, so they stay on the curve
+      camera.projectionMatrix.elements[0] *= STRETCH_X;
+      camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     };
 
     const scene = new THREE.Scene();
@@ -147,17 +151,9 @@ export default function HowItLearns() {
     const spherical = new THREE.Spherical(CAMERA_RADIUS, CAMERA_PHI, Math.PI / 4);
     fitRenderer();
 
-    const ambient = new THREE.AmbientLight("#ffffff", 1.2);
-    const directional = new THREE.DirectionalLight("#ffffff", 1.2);
-    directional.position.set(3, 5, 3);
-    const fill = new THREE.DirectionalLight("#e0eeff", 0.5);
-    fill.position.set(-4, -2, -4);
-    const point = new THREE.PointLight("#ffffff", 1.0, 10);
-    point.position.set(0, 3, 0);
-    scene.add(ambient, directional, fill, point);
-
+    // flat Lute Blue (unlit, no tone mapping) so the ribbon is exactly the brand colour
     const geometry = buildTubeGeometry();
-    const material = new THREE.MeshStandardMaterial({ color: "#ffffff", metalness: 0.2, roughness: 0.08, side: THREE.DoubleSide });
+    const material = new THREE.MeshBasicMaterial({ color: RIBBON_COLOR, side: THREE.DoubleSide, toneMapped: false });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
@@ -169,13 +165,19 @@ export default function HowItLearns() {
       camera.lookAt(target);
       renderer.render(scene, camera);
       // labels follow their anchor points; nearer ones sit on top
+      const labels = labelRefs.current;
+      const widths = labels.map((el) => el?.offsetWidth ?? 0); // read all sizes before writing any styles
       anchors.forEach((anchor, i) => {
-        const el = labelRefs.current[i];
+        const el = labels[i];
         if (!el) return;
         projected.copy(anchor).project(camera);
         const x = (projected.x * 0.5 + 0.5) * width;
         const y = (-projected.y * 0.5 + 0.5) * height;
-        el.style.transform = `translate(${(x - 4).toFixed(1)}px, ${y.toFixed(1)}px) translateY(-50%)`;
+        // the label's square sits on its point of the curve; near the right edge the box flips to the left of it
+        const flip = x - 4 + widths[i] > width - LABEL_EDGE;
+        if (el.dataset.flip !== String(flip)) el.dataset.flip = String(flip);
+        const left = flip ? x + 4 - widths[i] : x - 4;
+        el.style.transform = `translate(${left.toFixed(1)}px, ${(y - 4).toFixed(1)}px)`;
         el.style.visibility = projected.z < 1 ? "visible" : "hidden";
         el.style.zIndex = String(Math.round((1 - projected.z) * 10000));
       });
@@ -250,8 +252,11 @@ export default function HowItLearns() {
                   aria-expanded={i === active}
                   onClick={() => { setActive(i); setCycleKey((k) => k + 1); }}
                 >
-                  <span className="s4-point-name"><span className="s4-point-square" aria-hidden="true" />{s.name}</span>
-                  <span className="s4-point-desc"><span><span>{s.desc}</span></span></span>
+                  <i aria-hidden="true" />
+                  <span className="s4-point-box">
+                    <span className="s4-point-name">{s.name}</span>
+                    <span className="s4-point-desc"><span>{s.desc}</span></span>
+                  </span>
                 </button>
               </li>
             ))}
