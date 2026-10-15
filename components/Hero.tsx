@@ -5,22 +5,27 @@ import Button from "./Button";
 import SplitChars from "./SplitChars";
 import { LuteIcon, LuteLogo } from "./icons";
 
-/* Hero = keyframed intro canvas (Figma 90:19483) + the fixed navigation layer (Navi open, 90:19484). */
+/* Hero = keyframed intro canvas (v2 sequence, Figma 121:22647) + the fixed navigation layer (Navi open, 90:19484).
+   1 · the video sits in a centred 824 × 486 window  2 · it grows to fill the screen  3 · the headline comes in
+   4 · the line and points draw, then the copy, the buttons, and the navigation bar grows out of the wordmark */
 
 /* timeline (ms) */
 const T = {
-  intro: 0, // slide 1: bg, logo, icon
-  route: 500, // constellation draws
+  window: 200, // video window fades in (frame 1)
+  grow: 1200, // window grows to full bleed (frame 2)
+  growDur: 1500,
+  head: 2700, // headline, character by character (frame 3)
+  route: 3900, // line and points (frame 4)
   routeDur: 2100,
-  head: 2500, // slide 2: headline + media rises
-  rise: 2700,
-  s3: 4400, // slide 3: media grows behind headline, points leave
-  s4: 5800, // slide 4: full-bleed, navigation + copy
-  end: 7900,
+  copy: 5800, // copy, then the two buttons
+  nav: 6300, // the bar grows out of the centred wordmark
+  end: 7600,
 };
 const E = { out: "cubic-bezier(.16,1,.3,1)", io: "cubic-bezier(.65,0,.35,1)" };
 // the menu is usable (and the page scrolls) once the bar has formed
-const NAV_READY = T.s4 + 1100;
+const NAV_READY = T.nav + 1100;
+// frame 1: the 824 × 486 window is the full-bleed layer scaled down (same proportions as the 1440 × 850 frame)
+const WINDOW_SCALE = 824 / 1440;
 
 const ROUTE_VERTICES = [[0.58, 344.56], [282.08, 1.06], [402.58, 101.56], [228.08, 117.56], [607.58, 229.56], [1218.58, 109.06]];
 const POINTS = [
@@ -79,18 +84,36 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
       return a;
     };
 
-    /* slide 1: entry */
+    /* frame 1: stage, wordmark, icon and the speed label; the video window fades in */
     A(el(r.bg), [{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: "ease-out" });
     A(el(r.logo), [{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { delay: 150, duration: 700, easing: E.out });
+    A(el(r.speed), [{ opacity: 0 }, { opacity: 1 }], { delay: 200, duration: 600 });
     A(el(r.icon), [{ opacity: 0 }, { opacity: 1 }], { delay: 200, duration: 600 });
 
     // lute icon: its four blocks blink in sequence while the intro loads
     [...el(r.icon).querySelectorAll("path")].reverse().forEach((p, i) => {
       A(p, [{ opacity: 1 }, { opacity: 0.15, offset: 0.3 }, { opacity: 1, offset: 0.6 }, { opacity: 1 }],
-        { delay: 300 + i * 120, duration: 1100, iterations: 4, easing: "ease-in-out" });
+        { delay: 300 + i * 120, duration: 1100, iterations: 3, easing: "ease-in-out" });
     });
 
-    /* constellation: route draws vertex to vertex, each point lands when the line reaches it */
+    A(el(r.media), [{ opacity: 0, transform: "translateY(24px)" }, { opacity: 1, transform: "none" }],
+      { delay: T.window, duration: 800, easing: E.out });
+
+    /* frame 2: the window grows to fill the screen */
+    A(el(r.mediaGray), [
+      { transform: `scale(${WINDOW_SCALE})`, borderRadius: `${16 / WINDOW_SCALE}px` },
+      { transform: "scale(1)", borderRadius: "0px" },
+    ], { delay: T.grow, duration: T.growDur, easing: E.io });
+
+    /* frame 3: headline, character by character */
+    el(r.headline).querySelectorAll<HTMLElement>(".h-line").forEach((line, li) => {
+      [...line.children].forEach((ch, ci) => {
+        A(ch, [{ opacity: 0, transform: "translateY(0.32em)", filter: "blur(10px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }],
+          { delay: T.head + li * 170 + ci * 22, duration: 900, easing: E.out });
+      });
+    });
+
+    /* frame 4: the route draws vertex to vertex, each point lands when the line reaches it */
     const route = el(r.route);
     const pts = ROUTE_VERTICES;
     const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
@@ -104,64 +127,27 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
     const segDur = T.routeDur / seg.length;
     A(route, kf, { delay: T.route, duration: T.routeDur });
 
-    const pointEls = [...el(r.constellation).querySelectorAll<HTMLElement>(".point")];
-    pointEls.forEach((pt, i) => {
+    el(r.constellation).querySelectorAll<HTMLElement>(".point").forEach((pt, i) => {
       const at = T.route + i * segDur - (i === 0 ? 150 : 40);
       A(pt.querySelector("i")!, [{ transform: "scale(0)", opacity: 0 }, { transform: "scale(1.6)", opacity: 1, offset: 0.55 }, { transform: "scale(1)", opacity: 1 }],
         { delay: at, duration: 420, easing: E.out });
       A(pt.querySelector("span")!, [{ clipPath: "inset(0 100% 0 0)", opacity: 0.4 }, { clipPath: "inset(0 0 0 0)", opacity: 1 }],
         { delay: at + 120, duration: 320, easing: "steps(4, end)" });
-      // slide 3: points leave in reverse order
-      A(pt, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-6px)" }],
-        { delay: T.s3 + (pointEls.length - 1 - i) * 45, duration: 380, easing: "ease-in" });
-    });
-    A(route, [{ opacity: 1 }, { opacity: 0 }], { delay: T.s3 + 120, duration: 450, easing: "ease-in", composite: "replace" });
-
-    /* slide 2: headline, character by character */
-    el(r.headline).querySelectorAll<HTMLElement>(".h-line").forEach((line, li) => {
-      [...line.children].forEach((ch, ci) => {
-        A(ch, [{ opacity: 0, transform: "translateY(0.32em)", filter: "blur(10px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }],
-          { delay: T.head + li * 170 + ci * 22, duration: 900, easing: E.out });
-      });
-      // slide 4: headline lifts away
-      A(line, [{ opacity: 1, transform: "none", filter: "blur(0)" }, { opacity: 0, transform: "translateY(-48px)", filter: "blur(8px)" }],
-        { delay: T.s4 + li * 80, duration: 650, easing: "cubic-bezier(.55,0,.75,.2)" });
     });
 
-    /* media window: rise (slide 2) → grow (slide 3) → full bleed (slide 4) */
-    const span = T.s4 + 1200 - T.rise;
-    A(el(r.media), [
-      { clipPath: "inset(100% 44px -40px 44px round 16px)", offset: 0, easing: E.out },
-      { clipPath: "inset(calc(100% - 264px) 44px -40px 44px round 16px)", offset: 1100 / span, easing: "linear" },
-      { clipPath: "inset(calc(100% - 264px) 44px -40px 44px round 16px)", offset: (T.s3 - T.rise) / span, easing: E.io },
-      { clipPath: "inset(198px -50px -40px -50px round 16px)", offset: (T.s3 + 1100 - T.rise) / span, easing: "linear" },
-      { clipPath: "inset(198px -50px -40px -50px round 16px)", offset: (T.s4 - T.rise) / span, easing: E.io },
-      { clipPath: "inset(0px 0px 0px 0px round 0px)", offset: 1 },
-    ], { delay: T.rise, duration: span });
-
-    // the picture travels with its window (Figma: 1412 wide @ s2, 1516 @ s3, 1440 @ s4)
-    A(el(r.mediaGray), [
-      { transform: "translateY(calc(100% - 18px)) scale(.98)", offset: 0, easing: E.out },
-      { transform: "translateY(calc(100% - 282px)) scale(.98)", offset: 1100 / span, easing: "linear" },
-      { transform: "translateY(calc(100% - 282px)) scale(.98)", offset: (T.s3 - T.rise) / span, easing: E.io },
-      { transform: "translateY(197px) scale(1.053)", offset: (T.s3 + 1100 - T.rise) / span, easing: "linear" },
-      { transform: "translateY(197px) scale(1.053)", offset: (T.s4 - T.rise) / span, easing: E.io },
-      { transform: "translateY(0px) scale(1)", offset: 1 },
-    ], { delay: T.rise, duration: span });
-
-    /* slide 4: centred wordmark slides into the navigation bar */
-    A(el(r.naviBg), [{ clipPath: "inset(0 50% 0 50%)", opacity: 0 }, { clipPath: "inset(0 0% 0 0%)", opacity: 1 }],
-      { delay: T.s4 + 500, duration: 900, easing: E.io });
-    A(el(r.logo), [{ transform: "translateX(0)" }, { transform: "translateX(-180px)" }],
-      { delay: T.s4 + 500, duration: 900, easing: E.io, composite: "add" });
-    A(el(r.menu), [{ opacity: 0, transform: "translateX(-8px)" }, { opacity: 1, transform: "none" }],
-      { delay: T.s4 + 1100, duration: 500, easing: E.out });
-    A(el(r.speed), [{ opacity: 0 }, { opacity: 1 }], { delay: T.s4 + 1200, duration: 500 });
-
+    // copy, then the buttons
     [el(r.lede), el(r.btn1), el(r.btn2)].forEach((target, i) => {
       A(target, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }],
-        { delay: T.s4 + 900 + i * 130, duration: 800, easing: E.out });
+        { delay: T.copy + i * 150, duration: 800, easing: E.out });
     });
+
+    // finally the centred wordmark slides into the navigation bar
+    A(el(r.naviBg), [{ clipPath: "inset(0 50% 0 50%)", opacity: 0 }, { clipPath: "inset(0 0% 0 0%)", opacity: 1 }],
+      { delay: T.nav, duration: 900, easing: E.io });
+    A(el(r.logo), [{ transform: "translateX(0)" }, { transform: "translateX(-180px)" }],
+      { delay: T.nav, duration: 900, easing: E.io, composite: "add" });
+    A(el(r.menu), [{ opacity: 0, transform: "translateX(-8px)" }, { opacity: 1, transform: "none" }],
+      { delay: T.nav + 600, duration: 500, easing: E.out });
 
     // everything now sits on its first frame: reveal the stage, lock scrolling until the hero lands
     html.classList.remove("booting");
@@ -311,7 +297,8 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
           </div>
 
           <div className="media" ref={r.media} aria-hidden="true">
-            {/* B&W: the clip stays black & white (50% darken + blue fade at the bottom) from the first frame */}
+            {/* B&W: the clip stays black & white (50% darken + blue fade at the bottom) from the first frame;
+                the layer starts scaled down to the frame-1 window and grows to full bleed */}
             <div className="media-layer media-gray" ref={r.mediaGray}>
               <video ref={r.video} src="/media/lute_sklep_t2_bw.mp4" poster="/assets/images/hero-poster.jpg" muted loop playsInline preload="auto" />
             </div>
@@ -321,7 +308,9 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
 
           <div className="copy">
             <p ref={r.lede}>
-              Lute combines physical AI software, monitoring, and remote support. Together they turn emerging capabilities into work businesses can rely on today.
+              Lute combines physical AI software, monitoring, and remote support.<br />
+              Together they turn emerging capabilities into work businesses can<br />
+              rely on today.
             </p>
             <div className="buttons">
               <Button ref={r.btn1} variant="primary" href="#">Talk to us</Button>
