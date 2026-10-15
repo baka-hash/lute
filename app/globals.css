@@ -209,55 +209,56 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .rv [data-r="img"] img { transition: transform 1.4s var(--ease-out) var(--dl, 0ms); }
 .rv [data-r="type"] span { transition: clip-path .4s steps(6, end) var(--dl, 0ms); }
 
-/* ---------- Section 3 · How it works (75:5615) — pinned, 3 scroll steps ---------- */
-/* the section is three viewports tall; the 1440 × 810 frame stays pinned while the steps change */
+/* ---------- Section 3 · How it works (v2 layout, Figma 121:22393) — pinned, 3 scroll steps ---------- */
+/* the section is three viewports tall; the 1440 × 810 frame stays pinned while the steps change:
+   title on the left, video in the centre, step copy on the right */
 .s3 { position: relative; height: calc(var(--vhd, 850px) * 3); background: var(--lute-paper); }
 .s3-pin { position: sticky; top: 0; height: var(--vhd, 850px); overflow: hidden; }
 .s3-frame { position: absolute; left: 0; width: 1440px; height: 810px; top: max(0px, calc((var(--vhd, 850px) - 810px) / 2)); }
 
-.s3-media { position: absolute; left: 80px; top: 20px; width: 535px; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-.s3-video { position: relative; height: 709.17px; border-radius: 16.37px; overflow: hidden; background: #1a1a1a; }
+.s3-title { position: absolute; left: 40px; top: calc(50% - 23.5px); transform: translateY(-50%); width: 444px; margin: 0;
+  display: flex; flex-direction: column; gap: 4px; text-align: center; font-weight: 400; }
+.s3-eyebrow { font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-blue); }
+.s3-h { display: block; font: 400 44px/1.05 var(--font-display); letter-spacing: -0.88px; color: var(--lute-black); }
+
+.s3-media { position: absolute; left: 498px; top: 120px; width: 444px; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.s3-video { position: relative; height: 585.166px; border-radius: 13.504px; overflow: hidden; background: #1a1a1a; }
 .s3-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
   clip-path: inset(100% 0 0 0); transition: clip-path .9s var(--ease-io); z-index: 1; }
 .s3-video video.is-active { clip-path: inset(0 0 0 0); z-index: 2; }
 .s3-video video.is-leaving { clip-path: inset(0 0 0 0); z-index: 1; transition: none; }
-.s3-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 497.78px; z-index: 3; pointer-events: none;
+.s3-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 410.742px; z-index: 3; pointer-events: none;
   background: linear-gradient(0deg, var(--lute-blue) 0%, rgba(146,197,229,0) 50%); }
-.s3-media figcaption { text-align: center; }
+.s3-media figcaption { display: flex; align-items: center; gap: 39px; }
+.s3-caption { width: 335px; font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-blue); }
 
-.s3-copy { position: absolute; left: 730px; top: 218px; width: 555px; display: flex; flex-direction: column; gap: 64px; }
-.s3-title { position: relative; margin: 0; height: 142px; font-weight: 400; }
-.s3-eyebrow { position: absolute; left: 6px; top: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-blue); }
-.s3-h { position: absolute; white-space: pre; font: 400 56px/1.05 var(--font-display); letter-spacing: -1.12px; color: var(--lute-black); }
+/* step dots under the video: the active step is black */
+.s3-dots { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.s3-dots button { display: block; width: 8px; height: 8px; padding: 0; border: 0; background: var(--lute-ice); cursor: pointer;
+  transition: background-color .4s var(--ease-out); }
+.s3-dots button.is-active { background: var(--lute-black); }
+.s3-dots button:hover:not(.is-active) { background: var(--lute-blue); }
+.s3-dots button:focus-visible { outline: 2px solid var(--lute-blue); outline-offset: 2px; }
 
-/* step copy: the active item rolls in from below, the previous one rolls out upwards */
-.s3-items { position: relative; height: 108px; }
-.s3-item { position: absolute; inset: 0 auto auto 0; width: 555px; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
-.s3-item h3, .s3-item p { margin: 0; overflow: hidden; font: 400 20px/1.2 var(--font-mono); letter-spacing: -0.4px; text-transform: uppercase; color: var(--lute-black); }
-.s3-item h3 span, .s3-item p span { display: block; transform: translateY(110%); opacity: 0;
+/* step copy (wrapper is positioned so the reveal's transform lands on .s3-items): the items share one grid cell; the active one rolls in from below, the previous one rolls out upwards */
+.s3-copy { position: absolute; left: 995px; top: calc(50% - 24px); transform: translateY(-50%); width: 389px; }
+.s3-items { display: grid; }
+.s3-item { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+.s3-item h3, .s3-item p { margin: 0; overflow: hidden; font-weight: 400; text-transform: uppercase; color: var(--lute-black); }
+.s3-item h3 { font: 400 20px/1.2 var(--font-mono); letter-spacing: -0.4px; }
+.s3-item p { font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; }
+.s3-item h3 > span, .s3-item p > span { display: block; transform: translateY(110%); opacity: 0;
   transition: transform .7s var(--ease-out), opacity .5s var(--ease-out); }
-.s3-item p span { transition-delay: 0s; }
-.s3-item.is-active h3 span, .s3-item.is-active p span { transform: none; opacity: 1; }
-.s3-item.is-active h3 span { transition-delay: .12s; }
-.s3-item.is-active p span { transition-delay: .2s; }
-.s3-item.is-past h3 span, .s3-item.is-past p span { transform: translateY(-110%); }
-
-.s3-index { position: absolute; right: 40px; top: 410px; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 35px; }
-.s3-index button { position: relative; padding: 0; border: 0; background: none; cursor: pointer;
-  font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-ice); transition: color .4s var(--ease-out); }
-.s3-index button::before { content: ""; position: absolute; left: -14px; top: 50%; width: 6px; height: 6px; margin-top: -3px; background: var(--lute-black);
-  transform: scale(0); transition: transform .35s var(--ease-out); }
-.s3-index button.is-active { color: var(--lute-black); }
-.s3-index button.is-active::before { transform: scale(1); }
-.s3-index button:hover { color: var(--lute-blue); }
-.s3-index button:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 4px; }
-
-.s3-icon { position: absolute; right: 20px; bottom: 20px; width: 60px; height: 60px; }
-.s3-icon svg { display: block; width: 60px; height: 60px; }
-.s3-icon path { fill: var(--lute-black); }
+.s3-item h3 > span { display: flex; align-items: flex-start; gap: 8px; }
+.s3-item h3 b { font-weight: 400; padding-top: 7px; }
+.s3-item h3 small { font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; }
+.s3-item.is-active h3 > span, .s3-item.is-active p > span { transform: none; opacity: 1; }
+.s3-item.is-active h3 > span { transition-delay: .12s; }
+.s3-item.is-active p > span { transition-delay: .2s; }
+.s3-item.is-past h3 > span, .s3-item.is-past p > span { transform: translateY(-110%); }
 
 @media (prefers-reduced-motion: reduce) {
-  .s3-video video, .s3-item h3 span, .s3-item p span { transition-duration: 1ms !important; transition-delay: 0s !important; }
+  .s3-video video, .s3-item h3 > span, .s3-item p > span { transition-duration: 1ms !important; transition-delay: 0s !important; }
 }
 
 /* ---------- Section 4 · How it learns (82:16818), 1440 × 1047 ---------- */
