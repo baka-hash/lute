@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import Hero from "./Hero";
 import { GradientMapFilter } from "./icons";
-import Blog, { type BlogVariant } from "./sections/Blog";
+import Blog from "./sections/Blog";
 import Contact from "./sections/Contact";
 import Footer from "./sections/Footer";
 import HowItLearns from "./sections/HowItLearns";
@@ -16,7 +16,7 @@ import Team from "./sections/Team";
    hero = keyframed intro canvas; fixed navigation layer; sections below in normal flow. */
 const DESIGN_WIDTH = 1440;
 
-export default function Home({ blogVariant }: { blogVariant: BlogVariant }) {
+export default function Home() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const chromeRef = useRef<HTMLElement>(null);
   const sectionsRef = useRef<HTMLDivElement>(null);
@@ -75,7 +75,7 @@ export default function Home({ blogVariant }: { blogVariant: BlogVariant }) {
         <HowItWorks />
         <HowItLearns />
         <Industries />
-        <Blog variant={blogVariant} />
+        <Blog />
         <Team />
         <Contact />
         <Footer />

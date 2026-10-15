@@ -2,11 +2,8 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
-/* Section 7 · Blog (v2 layout, Figma 75:14097). Two options for the client, picked with ?blog=1 / ?blog=2:
-   1 · slider: cards move right → left; the card in the first slot grows to 4 columns, then slides out under the mask
-   2 · hover: three cards, the hovered one grows from 3 to 4 columns (only one is wide at a time) */
-
-export type BlogVariant = "slider" | "hover";
+/* Section 7 · Blog (v2 layout, Figma 75:14097): a slider. Cards move right → left; the card in the first slot
+   grows to 4 columns, then slides out under the left mask. */
 
 type Post = { date: string; title: string; graphic?: boolean; media: ReactNode };
 
@@ -53,13 +50,11 @@ const POSTS: Post[] = [
   },
 ];
 
-function Card({ post, wide, hidden, style, onActivate, ...rest }: {
+function Card({ post, wide, hidden, style, ...rest }: {
   post: Post;
   wide: boolean;
   hidden?: boolean;
   style?: CSSProperties;
-  onActivate?: () => void;
-  "data-r"?: string;
   "data-slot"?: number;
 }) {
   return (
@@ -70,8 +65,6 @@ function Card({ post, wide, hidden, style, onActivate, ...rest }: {
       aria-hidden={hidden || undefined}
       tabIndex={hidden ? -1 : undefined}
       style={style}
-      onMouseEnter={onActivate}
-      onFocus={onActivate}
       {...rest}
     >
       <div className={post.graphic ? "s7-media s7-media--graphic" : "s7-media"}>{post.media}</div>
@@ -83,27 +76,6 @@ function Card({ post, wide, hidden, style, onActivate, ...rest }: {
   );
 }
 
-/* ---------- option 2 · hover ---------- */
-function HoverCards() {
-  // the first card starts wide; the last hovered (or focused) card stays wide
-  const [wide, setWide] = useState(0);
-  return (
-    <>
-      {POSTS.map((post, i) => (
-        <Card
-          key={post.title}
-          post={post}
-          wide={i === wide}
-          onActivate={() => setWide(i)}
-          data-r="card"
-          style={{ "--dl": `${120 + i * 140}ms` } as CSSProperties}
-        />
-      ))}
-    </>
-  );
-}
-
-/* ---------- option 1 · slider ---------- */
 // slot geometry inside the viewport (x from the viewport's left edge = column 3)
 const SLOTS = [
   { x: 0, w: 440 }, // first slot: 4 columns
@@ -162,11 +134,11 @@ function Slider() {
   );
 }
 
-export default function Blog({ variant }: { variant: BlogVariant }) {
+export default function Blog() {
   return (
-    <section className={`s7 s7--${variant}`} id="blog" aria-labelledby="s7-title">
+    <section className="s7" id="blog" aria-labelledby="s7-title">
       <h2 className="s7-eyebrow mono-xs" id="s7-title" data-r="fade">(Read blog)</h2>
-      {variant === "slider" ? <Slider /> : <HoverCards />}
+      <Slider />
     </section>
   );
 }
