@@ -75,8 +75,8 @@ export default function Home({ blogVariant }: { blogVariant: BlogVariant }) {
         <HowItWorks />
         <HowItLearns />
         <Industries />
-        <Team />
         <Blog variant={blogVariant} />
+        <Team />
         <Contact />
         <Footer />
       </div>

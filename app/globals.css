@@ -327,8 +327,8 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .rv .s5-pills li { transition: opacity .4s ease, transform .5s var(--ease-out);
   transition-delay: calc(var(--dl, 0ms) + 480ms + var(--i, 0) * 70ms); }
 
-/* ---------- Section 6 · Team logos (75:10448), 1440 × 221 — marquee ---------- */
-.s6 { position: relative; height: 221px; background: var(--lute-blue); overflow: hidden; }
+/* ---------- Section 6 · Team logos (75:10448), 1440 × 221 — marquee; v2: below the blog, on Lute Ice ---------- */
+.s6 { position: relative; height: 221px; background: var(--lute-ice); overflow: hidden; }
 .s6-title { position: absolute; left: 0; right: 0; top: 40px; margin: 0; text-align: center;
   font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-white); }
 .s6-viewport { position: absolute; left: 0; right: 0; top: 101px; height: 80px; overflow: hidden;
@@ -404,24 +404,26 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
   .s7-zoom, .s7-card, .s7-media { transition: none !important; }
 }
 
-/* ---------- Section 8 · CTA (82:15479), 1440 × 604 + footer 320 ---------- */
-.s8 { position: relative; height: 604px; overflow: hidden;
-  background: linear-gradient(0deg, rgba(146,197,229,0) 0%, var(--lute-blue) 100%), var(--lute-ice); }
-.s8-headline { position: absolute; left: 52px; top: 80px; width: 1336px; height: 366px; }
-.s8-route { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.s8-route svg { position: absolute; left: 77.5px; top: 8.14px; width: 1221.34px; height: 344.55px; overflow: visible; }
-.s8-point { position: absolute; display: flex; align-items: center; gap: 4px; height: 17.914px; }
-.s8-point i { display: block; width: 8px; height: 8px; background: var(--lute-off-white); }
-.s8-point span { font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-off-white); white-space: nowrap; }
-.s8-title { margin: 0; font-weight: 400; }
-.s8-line { position: absolute; z-index: 2; white-space: nowrap; font: 400 103px/0.95 var(--font-display); letter-spacing: -2.06px; color: var(--lute-off-white); }
-.s8-line .ch { display: inline-block; }
-.s8-row { position: absolute; left: 40px; right: 40px; top: 486px; display: flex; align-items: center; justify-content: space-between; }
-.s8-copy { margin: 0; width: 613px; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-white); }
-.s8-btn { width: 272px; justify-content: space-between; }
+/* ---------- Section 8 · CTA (v2 layout, Figma 100:22199), 1440 × 506 + footer 320 ---------- */
+/* headline + copy on Lute Ice, a square video with the "Talk to us" button on the right, white corner marks */
+.s8 { position: relative; height: 506px; overflow: hidden; background: var(--lute-ice); }
+.s8-marks { position: absolute; left: 40px; top: 40px; width: 1360px; height: 426px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+.s8-marks span { display: flex; justify-content: space-between; }
+.s8-marks i { display: block; width: 10px; height: 10px; background: var(--lute-white); }
 
-/* footer */
-.s9 { position: relative; height: 320px; background: var(--lute-white); overflow: hidden; color: var(--lute-blue); }
+.s8-content { position: absolute; left: 59px; top: calc(50% + 0.5px); transform: translateY(-50%); width: 840px; display: flex; flex-direction: column; gap: 40px; }
+.s8-title { position: relative; height: 234px; margin: 0; font-weight: 400; }
+.s8-line { position: absolute; white-space: nowrap; font: 400 72px/0.95 var(--font-display); letter-spacing: -1.44px; color: var(--lute-off-white); }
+.s8-line .ch { display: inline-block; }
+.s8-copy { margin: 0; width: 613px; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-white); }
+
+.s8-media { position: absolute; left: 1010px; top: 67px; width: 365px; height: 365px; overflow: hidden; }
+.s8-media video { position: absolute; left: -30px; top: -7px; width: 396px; height: 396px; object-fit: cover; display: block; }
+.s8-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, var(--lute-blue) 0%, rgba(146,197,229,0) 50%); }
+.s8-btn { position: absolute; left: 16px; top: 309px; }
+
+/* footer (v2, Figma 121:22403): white on Lute Blue */
+.s9 { position: relative; height: 320px; background: var(--lute-blue); overflow: hidden; color: var(--lute-white); }
 .s9-brand { position: absolute; left: 40px; bottom: 40px; display: flex; gap: 40px; align-items: flex-start; }
 .s9-wordmark { display: block; width: 468px; height: 200px; overflow: hidden; }
 .s9-wordmark span { display: block; }
@@ -445,10 +447,15 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .s9 a:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 3px; }
 
 /* CTA / footer reveal states (set up by JS only) */
-.rv .s8:not(.is-on) .s8-copy, .rv .s8:not(.is-on) .s8-btn { opacity: 0; transform: translateY(16px); }
-.rv .s8 .s8-copy, .rv .s8 .s8-btn { transition: opacity .8s var(--ease-out), transform .9s var(--ease-out); }
+.rv .s8:not(.is-on) .s8-copy { opacity: 0; transform: translateY(16px); }
+.rv .s8 .s8-copy { transition: opacity .8s var(--ease-out), transform .9s var(--ease-out); }
 .rv .s8.is-on .s8-copy { transition-delay: var(--copy-dl, 0ms); }
-.rv .s8.is-on .s8-btn { transition-delay: calc(var(--copy-dl, 0ms) + 150ms); }
+.rv .s8:not(.is-on) .s8-media { clip-path: inset(100% 0 0 0); }
+.rv .s8 .s8-media { transition: clip-path 1.2s var(--ease-io) .2s; }
+.rv .s8:not(.is-on) .s8-btn { opacity: 0; transform: translateY(12px); }
+.rv .s8 .s8-btn { transition: opacity .7s var(--ease-out) 1s, transform .8s var(--ease-out) 1s, border-color var(--btn-d) var(--btn-e); }
+.rv .s8:not(.is-on) .s8-marks i { transform: scale(0); }
+.rv .s8 .s8-marks i { transition: transform .5s var(--ease-out) calc(var(--i, 0) * 60ms); }
 .rv .s9:not(.is-on) .s9-wordmark span { transform: translateY(105%); }
 .rv .s9 .s9-wordmark span { transition: transform 1.2s var(--ease-out); }
 .rv .s9:not(.is-on) :is(.s9-tagline, .s9-links li, .s9-loc, .s9-social, .s9-meta) { opacity: 0; transform: translateY(10px); }
