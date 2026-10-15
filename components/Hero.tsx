@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import Button from "./Button";
 import SplitChars from "./SplitChars";
 import { LuteIcon, LuteLogo } from "./icons";
@@ -203,6 +203,29 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
   const shownOpen = useRef(false);
   const openRef = useRef(false);
   openRef.current = navOpen;
+  // with a mouse the menu opens on hover and closes shortly after the pointer leaves the menu, panel and logo
+  const hoverOpened = useRef(false);
+  const hoverOpenedAt = useRef(0);
+  const closeTimer = useRef(0);
+  const hoverIn = (e: ReactPointerEvent) => {
+    if (e.pointerType !== "mouse" || !ready) return;
+    clearTimeout(closeTimer.current);
+    if (!openRef.current) { hoverOpened.current = true; hoverOpenedAt.current = performance.now(); setNavOpen(true); }
+  };
+  const hoverKeep = (e: ReactPointerEvent) => {
+    if (e.pointerType === "mouse") clearTimeout(closeTimer.current);
+  };
+  const hoverOut = (e: ReactPointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => {
+      // the panel may have grown under a resting pointer while it opened
+      if ([r.menu, r.panel, r.logo].some((x) => x.current?.matches(":hover"))) return;
+      hoverOpened.current = false;
+      setNavOpen(false);
+    }, 300);
+  };
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
 
   useEffect(() => {
     if (shownOpen.current === navOpen) return;
@@ -225,6 +248,8 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
         { delay: 180 + i * 70, duration: 700, easing: E.out, fill: "both" }));
       N(cta, [{ transform: "translateY(12px)", opacity: 0 }, { transform: "none", opacity: 1 }],
         { delay: 420, duration: 600, easing: E.out, fill: "both" });
+      // opened by click / keyboard: move focus into the panel (not when it opened on hover)
+      if (hoverOpened.current) return;
       const t = window.setTimeout(() => {
         if (openRef.current) panel.querySelector<HTMLAnchorElement>(".navi-links a")?.focus({ preventScroll: true });
       }, 300);
@@ -310,8 +335,16 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
 
       <header className="chrome" ref={chromeRef}>
         <div className="navi-bg" ref={r.naviBg} />
-        <a className="logo" ref={r.logo} href="#" aria-label="Lute home"><LuteLogo /></a>
-        <nav className="navi-panel" id="naviPanel" ref={r.panel} aria-label="Main" inert={!navOpen}>
+        <a className="logo" ref={r.logo} href="#" aria-label="Lute home" onPointerEnter={hoverKeep} onPointerLeave={hoverOut}><LuteLogo /></a>
+        <nav
+          className="navi-panel"
+          id="naviPanel"
+          ref={r.panel}
+          aria-label="Main"
+          inert={!navOpen}
+          onPointerEnter={hoverKeep}
+          onPointerLeave={hoverOut}
+        >
           <ul className="navi-links">
             {NAV_LINKS.map((label) => (
               <li key={label}><span className="rise"><a href="#">{label}</a></span></li>
@@ -327,7 +360,15 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
           aria-expanded={navOpen}
           aria-controls="naviPanel"
           aria-label={navOpen ? "Close menu" : "Open menu"}
-          onClick={() => setNavOpen((o) => !o)}
+          onClick={(e) => {
+            // a reflex click right after the hover opened the menu should not close it again
+            const mouse = (e.nativeEvent as PointerEvent).pointerType === "mouse";
+            if (mouse && hoverOpened.current && performance.now() - hoverOpenedAt.current < 800) return;
+            hoverOpened.current = false;
+            setNavOpen((o) => !o);
+          }}
+          onPointerEnter={hoverIn}
+          onPointerLeave={hoverOut}
         >
           <span className="flip" aria-hidden="true">
             <span className="flip-in"><span>Menu</span><span>Close</span></span>
