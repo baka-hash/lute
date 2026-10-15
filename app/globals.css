@@ -66,7 +66,9 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .menu .flip-in { display: flex; flex-direction: column; align-items: flex-end; transition: transform .5s var(--ease-io); }
 .menu .flip-in span { display: block; height: 18px; }
 .menu[aria-expanded="true"] .flip-in { transform: translateY(-18px); }
-.menu:hover .flip { text-decoration: underline; text-underline-offset: 3px; }
+/* hover underline is drawn inside each label, so the outgoing "Menu" takes its line with it while "Close" rolls in
+   (a text-decoration on .flip peeked out under the clip as a few stray pixels) */
+.menu:hover .flip-in span { background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat; }
 
 /* open navigation (Figma "Navi open", node 90:19484) — grows down out of the bar */
 .navi-panel { position: absolute; left: 500px; top: 20px; width: 441px; height: 377px; z-index: 5; box-sizing: border-box;
@@ -268,34 +270,30 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .s4-title { margin: 0; font-weight: 400; }
 .s4-body { position: absolute; left: 963px; top: 258px; width: 437px; margin: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-black); }
 
-.s4-board { position: absolute; left: 40px; top: 382px; width: 1360px; height: 545px; box-sizing: border-box;
-  border: 1px solid var(--lute-ice); border-radius: 16px; overflow: hidden; }
-.s4-line { position: absolute; left: 201.5px; top: 62px; width: 946.2px; height: 408px; overflow: visible; }
-.s4-spin { position: absolute; left: 201.5px; top: 62px; width: 946.2px; height: 408px; overflow: visible; pointer-events: none; }
-.s4-spin polyline { fill: none; stroke: var(--lute-ice); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.s4-board { position: absolute; left: 40px; top: 382px; width: 1360px; height: 545px; border-radius: 16px; overflow: hidden; }
+/* the loop: a three.js ribbon on a white → Lute Blue gradient at 50% opacity */
+.s4-bg { position: absolute; inset: 0; opacity: .5; background: linear-gradient(180deg, var(--lute-white) 0%, var(--lute-blue) 100%); }
+.s4-scene { position: absolute; inset: 0; }
+.s4-scene canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 
-/* loop steps: black tag; the active one turns Lute Ice and opens its description */
-.s4-steps { list-style: none; margin: 0; padding: 0; }
-.s4-step { position: absolute; z-index: 2; will-change: transform; }
-.s4-step.is-active { z-index: 3; }
-.s4-step button { display: flex; align-items: flex-start; gap: 10px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; color: inherit; }
-.s4-step i { display: block; width: 8px; height: 8px; flex: none; background: var(--lute-black); transition: transform .8s var(--ease-out); }
-.s4-tag { display: grid; grid-template-rows: auto 0fr; padding: 6px 8px; background: var(--lute-black); border: 1px solid rgba(175,204,222,.5);
-  font: 400 14px/1.3 var(--font-mono); letter-spacing: -0.28px; text-transform: uppercase; color: var(--lute-white);
-  transition: grid-template-rows 1.1s var(--ease-io), background-color .7s ease, color .7s ease; }
-.s4-name { white-space: nowrap; }
-.s4-desc { overflow: hidden; min-height: 0; width: 0; min-width: 100%; transition: width 1.1s var(--ease-io); }
-.s4-step.is-active .s4-desc { width: 226px; }
-.s4-desc span { display: block; width: 226px; padding-top: 12px; opacity: 0; transform: translateY(-6px); transition: opacity .6s ease, transform .8s var(--ease-out); }
-.s4-step.is-active .s4-tag { grid-template-rows: auto 1fr; background: var(--lute-ice); color: var(--lute-black); }
-.s4-step.is-active .s4-desc span { opacity: 1; transform: none; transition-delay: .4s; }
-.s4-step.is-active i { transform: scale(1.25); }
-.s4-step button:focus-visible { outline: none; }
-.s4-step button:focus-visible .s4-tag { outline: 2px solid var(--lute-blue); outline-offset: 2px; }
-
-/* reveal: tags wait for the line to draw */
-.rv .s4-step button { opacity: 0; transform: translateY(6px); transition: opacity .5s var(--ease-out), transform .6s var(--ease-out); }
-.rv .s4-step.in button { opacity: 1; transform: none; }
+/* step labels ride on the curve (Figma 120:22332): black square + black box; the open one turns Lute Ice and
+   shows its description */
+.s4-points { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.s4-point { position: absolute; left: 0; top: 0; pointer-events: auto; will-change: transform; }
+.s4-point button { display: flex; align-items: flex-start; gap: 10px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; color: inherit; }
+.s4-point i { display: block; width: 8px; height: 8px; flex: none; background: var(--lute-black); }
+.s4-point[data-flip="true"] button { flex-direction: row-reverse; }
+.s4-point-box { display: grid; grid-template-rows: auto 0fr; padding: 6px 8px; background: var(--lute-black); color: var(--lute-white);
+  font: 400 14px/1.3 var(--font-mono); letter-spacing: -0.28px; text-transform: uppercase;
+  transition: grid-template-rows 1.1s var(--ease-io), background-color .5s ease, color .5s ease; }
+.s4-point-name { white-space: nowrap; }
+.s4-point-desc { overflow: hidden; min-height: 0; width: 0; min-width: 100%; transition: width 1.1s var(--ease-io); }
+.s4-point-desc span { display: block; width: 226px; padding-top: 12px; opacity: 0; transform: translateY(-6px); transition: opacity .6s ease, transform .8s var(--ease-out); }
+.s4-point button.is-open .s4-point-box { grid-template-rows: auto 1fr; background: var(--lute-ice); color: var(--lute-black); }
+.s4-point button.is-open .s4-point-desc { width: 226px; }
+.s4-point button.is-open .s4-point-desc span { opacity: 1; transform: none; transition-delay: .3s; }
+.s4-point button:focus-visible { outline: none; }
+.s4-point button:focus-visible .s4-point-box { outline: 2px solid var(--lute-blue); outline-offset: 2px; }
 
 /* ---------- Section 5 · Industry sectors (v2 layout, Figma 75:11879), 1440 × 578 ---------- */
 /* headline (pinned lines with numbered points, as in "The problem") + copy on the right, three sector cards below */
