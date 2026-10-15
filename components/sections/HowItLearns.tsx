@@ -10,11 +10,12 @@ import { Point } from "./Problem";
 
 /* ---------- ribbon setup ---------- */
 const TUBE_WIDTH = 0.01;
-const SEGMENTS = 240;
+const SEGMENTS = 40; // few, straight segments: the loop reads as angular, with visible joints
 const RADIAL_SEGMENTS = 8;
 const AMPLITUDE = 0.5; // vertical swing of the loop: kept low so the ribbon sits inside the board
-const COMPLEXITY = 1.8;
+const TURNS = 2; // two whole turns, so the loop closes on itself
 const PATH_RADIUS = 1.5;
+const RADIUS_SWING = 0.18; // the two turns differ in radius (period = both turns), so they don't overlap
 const TWIST = 2.5;
 
 const CAMERA_RADIUS = 4.4;
@@ -22,7 +23,7 @@ const STRETCH_X = 2; // the loop is drawn twice as wide on screen without gettin
 const RIBBON_COLOR = "#004D78"; // Lute Blue
 const LABEL_EDGE = 16; // keep labels this far inside the board's right edge
 const CAMERA_PHI = Math.PI / 3; // looking down 30°
-const ROTATE_SPEED = 0.002; // radians per frame
+const ROTATE_SPEED = 0.0016; // radians per frame
 const CYCLE_MS = 4200;
 
 const STEPS = [
@@ -32,12 +33,14 @@ const STEPS = [
   { name: "(04) Better performance", desc: "Robots take on more work, more reliably. Then the loop starts again.", t: 0.82 },
 ];
 
+/* closed curve: every term repeats exactly at t = 1, so the end meets the start */
 function curvePoint(t: number, target = new THREE.Vector3()) {
-  const angle = t * Math.PI * 2 * COMPLEXITY;
+  const angle = t * Math.PI * 2 * TURNS;
+  const r = PATH_RADIUS * (1 + RADIUS_SWING * Math.sin(angle / 2));
   return target.set(
-    Math.sin(angle) * PATH_RADIUS,
-    Math.cos(angle * 1.3) * AMPLITUDE * 0.6,
-    Math.cos(angle) * PATH_RADIUS,
+    Math.sin(angle) * r,
+    Math.cos(angle * 1.5) * AMPLITUDE * 0.6,
+    Math.cos(angle) * r,
   );
 }
 
@@ -157,7 +160,8 @@ export default function HowItLearns() {
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    const anchors = STEPS.map((s) => curvePoint(s.t));
+    // anchors snap to the nearest joint, so each label sits exactly on the angular line
+    const anchors = STEPS.map((s) => curvePoint(Math.round(s.t * SEGMENTS) / SEGMENTS));
     const projected = new THREE.Vector3();
 
     const render = () => {
