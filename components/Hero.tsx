@@ -13,7 +13,7 @@ const T = {
   route: 500, // constellation draws
   routeDur: 2100,
   head: 2500, // slide 2: headline
-  s3: 4400, // slide 3: media appears and grows behind the headline, points leave
+  s3: 4400, // slide 3: points leave
   s4: 5800, // slide 4: full-bleed, navigation + copy
   end: 7900,
 };
@@ -21,6 +21,10 @@ const E = { out: "cubic-bezier(.16,1,.3,1)", io: "cubic-bezier(.65,0,.35,1)" };
 // the video fades in with the window: fully opaque once the window reaches 80% of its size;
 // the black overlay on top of it grows with the window to 30%
 const VIDEO_FULL_AT = 0.8;
+// headline: each character takes HEAD_CHAR_DUR, staggered per line and per character
+const HEAD_LINE_DELAY = 170, HEAD_CHAR_DELAY = 22, HEAD_CHAR_DUR = 900;
+const VIDEO_AFTER_HEAD = 0.98; // the video starts when the headline animation is 98% done
+const GROW_DUR = 2600; // the window grows from the bottom edge to full bleed
 const SHADE_MAX = 0.3;
 
 /* CSS cubic-bezier(x1, y1, x2, y2) as a function of progress, to follow the window's eased size in JS */
@@ -136,25 +140,30 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
     el(r.headline).querySelectorAll<HTMLElement>(".h-line").forEach((line, li) => {
       [...line.children].forEach((ch, ci) => {
         A(ch, [{ opacity: 0, transform: "translateY(0.32em)", filter: "blur(10px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }],
-          { delay: T.head + li * 170 + ci * 22, duration: 900, easing: E.out });
+          { delay: T.head + li * HEAD_LINE_DELAY + ci * HEAD_CHAR_DELAY, duration: HEAD_CHAR_DUR, easing: E.out });
       });
       // slide 4: headline lifts away
       A(line, [{ opacity: 1, transform: "none", filter: "blur(0)" }, { opacity: 0, transform: "translateY(-48px)", filter: "blur(8px)" }],
         { delay: T.s4 + li * 80, duration: 650, easing: "cubic-bezier(.55,0,.75,.2)" });
     });
 
-    /* media window: appears at slide 3 and grows in one move from the bottom edge to full bleed (slide 4) */
-    const span = T.s4 + 1200 - T.s3;
+    /* media window: starts when the headline animation is 98% done, then grows in one move from the bottom edge
+       to full bleed */
+    const headStagger = [...el(r.headline).querySelectorAll(".h-line")]
+      .map((line, li) => li * HEAD_LINE_DELAY + (line.children.length - 1) * HEAD_CHAR_DELAY);
+    const headDur = Math.max(...headStagger) + HEAD_CHAR_DUR;
+    const videoAt = T.head + VIDEO_AFTER_HEAD * headDur;
+    const span = GROW_DUR;
     A(el(r.media), [
       { clipPath: "inset(100% 44px -40px 44px round 16px)" },
       { clipPath: "inset(0px 0px 0px 0px round 0px)" },
-    ], { delay: T.s3, duration: span, easing: E.io });
+    ], { delay: videoAt, duration: span, easing: E.io });
 
     // the picture travels with its window
     A(el(r.mediaGray), [
       { transform: "translateY(calc(100% - 18px)) scale(.98)" },
       { transform: "translateY(0px) scale(1)" },
-    ], { delay: T.s3, duration: span, easing: E.io });
+    ], { delay: videoAt, duration: span, easing: E.io });
 
     // video opacity and the black overlay follow the window's (eased) size
     const SAMPLES = 48;
@@ -164,8 +173,8 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
       videoKF.push({ opacity: Math.min(1, size / VIDEO_FULL_AT), offset: o });
       shadeKF.push({ opacity: SHADE_MAX * size, offset: o });
     }
-    A(el(r.video), videoKF, { delay: T.s3, duration: span });
-    A(el(r.shade), shadeKF, { delay: T.s3, duration: span });
+    A(el(r.video), videoKF, { delay: videoAt, duration: span });
+    A(el(r.shade), shadeKF, { delay: videoAt, duration: span });
 
     /* slide 4: centred wordmark slides into the navigation bar */
     A(el(r.naviBg), [{ clipPath: "inset(0 50% 0 50%)", opacity: 0 }, { clipPath: "inset(0 0% 0 0%)", opacity: 1 }],
