@@ -67,9 +67,6 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .menu .flip-in { display: flex; flex-direction: column; align-items: flex-end; transition: transform .5s var(--ease-io); }
 .menu .flip-in span { display: block; height: 18px; }
 .menu[aria-expanded="true"] .flip-in { transform: translateY(-18px); }
-/* hover underline is drawn inside each label, so the outgoing "Menu" takes its line with it while "Close" rolls in
-   (a text-decoration on .flip peeked out under the clip as a few stray pixels) */
-.menu:hover .flip-in span { background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat; }
 
 /* open navigation (Figma "Navi open", node 90:19484) — grows down out of the bar */
 .navi-panel { position: absolute; left: 500px; top: 20px; width: 441px; height: 377px; z-index: 5; box-sizing: border-box;

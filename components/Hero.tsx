@@ -12,9 +12,8 @@ const T = {
   intro: 0, // slide 1: bg, logo, icon
   route: 500, // constellation draws
   routeDur: 2100,
-  head: 2500, // slide 2: headline + media rises
-  rise: 2700,
-  s3: 4400, // slide 3: media grows behind headline, points leave
+  head: 2500, // slide 2: headline
+  s3: 4400, // slide 3: media appears and grows behind the headline, points leave
   s4: 5800, // slide 4: full-bleed, navigation + copy
   end: 7900,
 };
@@ -33,7 +32,6 @@ function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
     return coord(t, y1, y2);
   };
 }
-const easeOut = cubicBezier(0.16, 1, 0.3, 1);
 const easeIo = cubicBezier(0.65, 0, 0.35, 1);
 // the menu is usable (and the page scrolls) once the bar has formed
 const NAV_READY = T.s4 + 1100;
@@ -145,37 +143,29 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
         { delay: T.s4 + li * 80, duration: 650, easing: "cubic-bezier(.55,0,.75,.2)" });
     });
 
-    /* media window: rises as a strip (slide 2), then grows in one move to full bleed (from slide 3 to slide 4) */
-    const span = T.s4 + 1200 - T.rise;
+    /* media window: appears at slide 3 and grows in one move from the bottom edge to full bleed (slide 4) */
+    const span = T.s4 + 1200 - T.s3;
     A(el(r.media), [
-      { clipPath: "inset(100% 44px -40px 44px round 16px)", offset: 0, easing: E.out },
-      { clipPath: "inset(calc(100% - 264px) 44px -40px 44px round 16px)", offset: 1100 / span, easing: "linear" },
-      { clipPath: "inset(calc(100% - 264px) 44px -40px 44px round 16px)", offset: (T.s3 - T.rise) / span, easing: E.io },
-      { clipPath: "inset(0px 0px 0px 0px round 0px)", offset: 1 },
-    ], { delay: T.rise, duration: span });
+      { clipPath: "inset(100% 44px -40px 44px round 16px)" },
+      { clipPath: "inset(0px 0px 0px 0px round 0px)" },
+    ], { delay: T.s3, duration: span, easing: E.io });
 
-    // the picture travels with its window (Figma: 1412 wide @ s2, 1440 @ s4)
+    // the picture travels with its window
     A(el(r.mediaGray), [
-      { transform: "translateY(calc(100% - 18px)) scale(.98)", offset: 0, easing: E.out },
-      { transform: "translateY(calc(100% - 282px)) scale(.98)", offset: 1100 / span, easing: "linear" },
-      { transform: "translateY(calc(100% - 282px)) scale(.98)", offset: (T.s3 - T.rise) / span, easing: E.io },
-      { transform: "translateY(0px) scale(1)", offset: 1 },
-    ], { delay: T.rise, duration: span });
+      { transform: "translateY(calc(100% - 18px)) scale(.98)" },
+      { transform: "translateY(0px) scale(1)" },
+    ], { delay: T.s3, duration: span, easing: E.io });
 
-    // video opacity and the black overlay follow the window's height: it rises to a 264-px strip, holds, then grows
-    const strip = Math.min(1, 264 / (el(canvasRef).offsetHeight || 850));
-    const rise = 1100 / span, hold = (T.s3 - T.rise) / span;
-    const sizeAt = (o: number) =>
-      o < rise ? strip * easeOut(o / rise) : o < hold ? strip : strip + (1 - strip) * easeIo((o - hold) / (1 - hold));
+    // video opacity and the black overlay follow the window's (eased) size
     const SAMPLES = 48;
     const videoKF: Keyframe[] = [], shadeKF: Keyframe[] = [];
     for (let i = 0; i <= SAMPLES; i++) {
-      const o = i / SAMPLES, size = sizeAt(o);
+      const o = i / SAMPLES, size = easeIo(o);
       videoKF.push({ opacity: Math.min(1, size / VIDEO_FULL_AT), offset: o });
       shadeKF.push({ opacity: SHADE_MAX * size, offset: o });
     }
-    A(el(r.video), videoKF, { delay: T.rise, duration: span });
-    A(el(r.shade), shadeKF, { delay: T.rise, duration: span });
+    A(el(r.video), videoKF, { delay: T.s3, duration: span });
+    A(el(r.shade), shadeKF, { delay: T.s3, duration: span });
 
     /* slide 4: centred wordmark slides into the navigation bar */
     A(el(r.naviBg), [{ clipPath: "inset(0 50% 0 50%)", opacity: 0 }, { clipPath: "inset(0 0% 0 0%)", opacity: 1 }],
