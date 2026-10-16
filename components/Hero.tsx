@@ -23,7 +23,7 @@ const E = { out: "cubic-bezier(.16,1,.3,1)", io: "cubic-bezier(.65,0,.35,1)" };
 const VIDEO_FULL_AT = 0.8;
 // headline: each character takes HEAD_CHAR_DUR, staggered per line and per character
 const HEAD_LINE_DELAY = 170, HEAD_CHAR_DELAY = 22, HEAD_CHAR_DUR = 900;
-const VIDEO_START = 1000; // the video window starts growing 1 s into the intro, while the route draws
+const VIDEO_START = 2000; // the video window starts growing 2 s into the intro, as the route finishes drawing
 const GROW_DUR = 2600; // the window grows from the bottom edge to full bleed
 const SHADE_MAX = 0.3;
 
@@ -147,7 +147,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
         { delay: T.s4 + li * 80, duration: 650, easing: "cubic-bezier(.55,0,.75,.2)" });
     });
 
-    /* media window: grows in one move from the bottom edge to full bleed, starting 1 s into the intro */
+    /* media window: grows in one move from the bottom edge to full bleed, starting 2 s into the intro */
     const videoAt = VIDEO_START;
     const span = GROW_DUR;
     A(el(r.media), [
