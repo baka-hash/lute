@@ -22,6 +22,22 @@ const T = {
   end: 7600,
 };
 const E = { out: "cubic-bezier(.16,1,.3,1)", io: "cubic-bezier(.65,0,.35,1)" };
+// the video fades in from 0% and is fully opaque once the window reaches 80% of full size; from there the black
+// overlay on top of it grows to 30% at full bleed
+const VIDEO_FULL_AT = 0.8;
+const SHADE_FROM = 0.8;
+const SHADE_MAX = 0.3;
+
+/* CSS cubic-bezier(x1, y1, x2, y2) as a function of progress, to follow the window's eased size in JS */
+function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
+  const coord = (t: number, a: number, b: number) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
+  return (x: number) => {
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 30; i++) { t = (lo + hi) / 2; if (coord(t, x1, x2) < x) lo = t; else hi = t; }
+    return coord(t, y1, y2);
+  };
+}
+const easeIo = cubicBezier(0.65, 0, 0.35, 1);
 // the menu is usable (and the page scrolls) once the bar has formed
 const NAV_READY = T.nav + 1100;
 // frame 1: the 824 × 486 window is the full-bleed layer scaled down (same proportions as the 1440 × 850 frame)
@@ -56,6 +72,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
     headline: useRef<HTMLHeadingElement>(null),
     media: useRef<HTMLDivElement>(null),
     mediaGray: useRef<HTMLDivElement>(null),
+    shade: useRef<HTMLSpanElement>(null),
     video: useRef<HTMLVideoElement>(null),
     speed: useRef<HTMLDivElement>(null),
     lede: useRef<HTMLParagraphElement>(null),
@@ -103,6 +120,20 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
       { transform: `scale(${WINDOW_SCALE})`, borderRadius: `${16 / WINDOW_SCALE}px` },
       { transform: "scale(1)", borderRadius: "0px" },
     ], { delay: T.grow, duration: T.growDur, easing: E.io });
+
+    // video opacity and the black overlay, sampled against the window's size (frame-1 window → full bleed)
+    const sizeAt = (t: number) => (t < T.grow ? WINDOW_SCALE : WINDOW_SCALE + (1 - WINDOW_SCALE) * easeIo(Math.min(1, (t - T.grow) / T.growDur)));
+    const from = T.window, to = T.grow + T.growDur, SAMPLES = 60;
+    let fullAt = to; // first moment the window is at VIDEO_FULL_AT of its size
+    for (let i = 0; i <= SAMPLES; i++) { const t = from + ((to - from) * i) / SAMPLES; if (sizeAt(t) >= VIDEO_FULL_AT) { fullAt = t; break; } }
+    const videoKF: Keyframe[] = [], shadeKF: Keyframe[] = [];
+    for (let i = 0; i <= SAMPLES; i++) {
+      const t = from + ((to - from) * i) / SAMPLES, size = sizeAt(t), o = i / SAMPLES;
+      videoKF.push({ opacity: Math.min(1, (t - from) / (fullAt - from)), offset: o });
+      shadeKF.push({ opacity: SHADE_MAX * Math.max(0, (size - SHADE_FROM) / (1 - SHADE_FROM)), offset: o });
+    }
+    A(el(r.video), videoKF, { delay: from, duration: to - from });
+    A(el(r.shade), shadeKF, { delay: from, duration: to - from });
 
     /* frame 3: headline, character by character */
     el(r.headline).querySelectorAll<HTMLElement>(".h-line").forEach((line, li) => {
@@ -300,6 +331,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
                 the layer starts scaled down to the frame-1 window and grows to full bleed */}
             <div className="media-layer media-gray" ref={r.mediaGray}>
               <video ref={r.video} src="/media/lute_sklep_t2_bw.mp4" poster="/assets/images/hero-poster.jpg" muted loop playsInline preload="auto" />
+              <span className="media-shade" ref={r.shade} />
             </div>
           </div>
 

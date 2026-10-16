@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Point } from "./Problem";
 
-/* Section 4 · How it learns (82:16818), 1440 × 1047.
+/* Section 4 · How it learns (82:16818), 1440 × 1147.
    The learning loop is a thin 3D ribbon (three.js) inside the board frame; the camera orbits it slowly and the
    four step labels ride on the curve. Labels open in turn; the cycle never pauses. */
 
@@ -21,6 +21,7 @@ const TWIST = 2.5;
 const CAMERA_RADIUS = 4.4;
 const STRETCH_X = 2; // the loop is drawn twice as wide on screen without getting taller
 const STRETCH_Y = 1.1; // and 10% taller
+const DESIGN_HEIGHT = 545; // the ribbon keeps the pixel size it had in a 545-px board, however tall the board is
 const RIBBON_COLOR = "#004D78"; // Lute Blue
 const LABEL_EDGE = 16; // keep labels this far inside the board's right edge
 const CAMERA_PHI = Math.PI / 3; // looking down 30°
@@ -147,8 +148,9 @@ export default function HowItLearns() {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       // stretch the picture (wider, a little taller); labels project through the same matrix, so they stay on the curve
-      camera.projectionMatrix.elements[0] *= STRETCH_X;
-      camera.projectionMatrix.elements[5] *= STRETCH_Y;
+      const keep = DESIGN_HEIGHT / height; // the vertical field of view is fixed, so undo the growth with the board
+      camera.projectionMatrix.elements[0] *= STRETCH_X * keep;
+      camera.projectionMatrix.elements[5] *= STRETCH_Y * keep;
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     };
 
