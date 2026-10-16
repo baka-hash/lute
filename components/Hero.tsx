@@ -23,10 +23,7 @@ const E = { out: "cubic-bezier(.16,1,.3,1)", io: "cubic-bezier(.65,0,.35,1)" };
 const VIDEO_FULL_AT = 0.8;
 // headline: each character takes HEAD_CHAR_DUR, staggered per line and per character
 const HEAD_LINE_DELAY = 170, HEAD_CHAR_DELAY = 22, HEAD_CHAR_DUR = 900;
-// the video starts 0.4 s before the last line ("operational.") is halfway through appearing
-const VIDEO_LINE = 2; // index in LINES
-const VIDEO_AT_LINE = 0.5;
-const VIDEO_LEAD = 400;
+const VIDEO_START = 1000; // the video window starts growing 1 s into the intro, while the route draws
 const GROW_DUR = 2600; // the window grows from the bottom edge to full bleed
 const SHADE_MAX = 0.3;
 
@@ -150,12 +147,8 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
         { delay: T.s4 + li * 80, duration: 650, easing: "cubic-bezier(.55,0,.75,.2)" });
     });
 
-    /* media window: starts 0.4 s before "operational." is halfway through appearing, then grows in one move from
-       the bottom edge to full bleed */
-    const videoLine = el(r.headline).querySelectorAll(".h-line")[VIDEO_LINE];
-    const lineStart = T.head + VIDEO_LINE * HEAD_LINE_DELAY;
-    const lineDur = (videoLine.children.length - 1) * HEAD_CHAR_DELAY + HEAD_CHAR_DUR;
-    const videoAt = lineStart + VIDEO_AT_LINE * lineDur - VIDEO_LEAD;
+    /* media window: grows in one move from the bottom edge to full bleed, starting 1 s into the intro */
+    const videoAt = VIDEO_START;
     const span = GROW_DUR;
     A(el(r.media), [
       { clipPath: "inset(100% 44px -40px 44px round 16px)" },

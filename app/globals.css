@@ -55,8 +55,8 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .media-blue img, .media-blue video { filter: url(#lute-gradient-map) blur(1px); }
 
 /* ---------- chrome ---------- */
-.navi-bg { position: absolute; left: 500px; top: 20px; width: 441px; height: 48px; z-index: 5;
-  background: rgba(0,77,120,.8); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+.navi-bg { position: absolute; left: 500px; top: 20px; width: 441px; height: 48px; z-index: 5; border-radius: 4px;
+  background: rgba(0,77,120,.6); -webkit-backdrop-filter: blur(60px); backdrop-filter: blur(60px);
   clip-path: inset(0 50% 0 50%); }
 .logo { position: absolute; left: 692px; top: 32px; width: 57px; height: 24px; z-index: 6; }
 .logo svg { display: block; width: 57px; height: 24px; }
@@ -69,7 +69,7 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .menu[aria-expanded="true"] .flip-in { transform: translateY(-18px); }
 
 /* open navigation (Figma "Navi open", node 90:19484) — grows down out of the bar */
-.navi-panel { position: absolute; left: 500px; top: 20px; width: 441px; height: 377px; z-index: 5; box-sizing: border-box;
+.navi-panel { position: absolute; left: 500px; top: 20px; width: 441px; height: 377px; z-index: 5; box-sizing: border-box; border-radius: 4px;
   display: flex; flex-direction: column; justify-content: space-between; padding: 68px 12px 12px;
   background: var(--lute-blue); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
   clip-path: inset(0 0 calc(100% - 48px) 0); visibility: hidden; }
