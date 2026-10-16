@@ -19,6 +19,22 @@ const T = {
   end: 7900,
 };
 const E = { out: "cubic-bezier(.16,1,.3,1)", io: "cubic-bezier(.65,0,.35,1)" };
+// the video fades in with the window: fully opaque once the window reaches 80% of its size;
+// the black overlay on top of it grows with the window to 30%
+const VIDEO_FULL_AT = 0.8;
+const SHADE_MAX = 0.3;
+
+/* CSS cubic-bezier(x1, y1, x2, y2) as a function of progress, to follow the window's eased size in JS */
+function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
+  const coord = (t: number, a: number, b: number) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
+  return (x: number) => {
+    let lo = 0, hi = 1, t = x;
+    for (let i = 0; i < 30; i++) { t = (lo + hi) / 2; if (coord(t, x1, x2) < x) lo = t; else hi = t; }
+    return coord(t, y1, y2);
+  };
+}
+const easeOut = cubicBezier(0.16, 1, 0.3, 1);
+const easeIo = cubicBezier(0.65, 0, 0.35, 1);
 // the menu is usable (and the page scrolls) once the bar has formed
 const NAV_READY = T.s4 + 1100;
 
@@ -51,6 +67,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
     headline: useRef<HTMLHeadingElement>(null),
     media: useRef<HTMLDivElement>(null),
     mediaGray: useRef<HTMLDivElement>(null),
+    shade: useRef<HTMLSpanElement>(null),
     video: useRef<HTMLVideoElement>(null),
     speed: useRef<HTMLDivElement>(null),
     copyHead: useRef<HTMLParagraphElement>(null),
@@ -144,6 +161,21 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
       { transform: "translateY(calc(100% - 282px)) scale(.98)", offset: (T.s3 - T.rise) / span, easing: E.io },
       { transform: "translateY(0px) scale(1)", offset: 1 },
     ], { delay: T.rise, duration: span });
+
+    // video opacity and the black overlay follow the window's height: it rises to a 264-px strip, holds, then grows
+    const strip = Math.min(1, 264 / (el(canvasRef).offsetHeight || 850));
+    const rise = 1100 / span, hold = (T.s3 - T.rise) / span;
+    const sizeAt = (o: number) =>
+      o < rise ? strip * easeOut(o / rise) : o < hold ? strip : strip + (1 - strip) * easeIo((o - hold) / (1 - hold));
+    const SAMPLES = 48;
+    const videoKF: Keyframe[] = [], shadeKF: Keyframe[] = [];
+    for (let i = 0; i <= SAMPLES; i++) {
+      const o = i / SAMPLES, size = sizeAt(o);
+      videoKF.push({ opacity: Math.min(1, size / VIDEO_FULL_AT), offset: o });
+      shadeKF.push({ opacity: SHADE_MAX * size, offset: o });
+    }
+    A(el(r.video), videoKF, { delay: T.rise, duration: span });
+    A(el(r.shade), shadeKF, { delay: T.rise, duration: span });
 
     /* slide 4: centred wordmark slides into the navigation bar */
     A(el(r.naviBg), [{ clipPath: "inset(0 50% 0 50%)", opacity: 0 }, { clipPath: "inset(0 0% 0 0%)", opacity: 1 }],
@@ -310,6 +342,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
             {/* B&W: the clip stays black & white (50% darken + blue fade at the bottom) from the first frame */}
             <div className="media-layer media-gray" ref={r.mediaGray}>
               <video ref={r.video} src="/media/lute_sklep_t2_bw.mp4" poster="/assets/images/hero-poster.jpg" muted loop playsInline preload="auto" />
+              <span className="media-shade" ref={r.shade} />
             </div>
           </div>
 
