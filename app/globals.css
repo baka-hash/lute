@@ -89,8 +89,10 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 .navi-links a:hover::before, .navi-links a:focus-visible::before { transform: scale(1); }
 .navi-links a:focus-visible { outline: 2px solid var(--lute-ice); outline-offset: 2px; }
 .speed { position: absolute; right: 20px; top: 20px; z-index: 6; font: 400 12px/1.2 var(--font-mono); letter-spacing: -0.24px; text-transform: uppercase; color: var(--lute-white); }
-.lute-icon { position: absolute; left: 20px; top: 20px; width: 60px; height: 60px; z-index: 6; } /* v2: top-left corner */
-.lute-icon svg { display: block; width: 60px; height: 60px; }
+/* v2: top-left corner, at the wordmark's size: the mark fills 40 of the icon's 60 units, so a 36-px icon gives a
+   24-px mark (the logo's height), placed 20 px from the corner */
+.lute-icon { position: absolute; left: 6.7px; top: 13.9px; width: 36px; height: 36px; z-index: 6; }
+.lute-icon svg { display: block; width: 36px; height: 36px; }
 
 /* v2: copy and button centred on the page */
 .copy { position: absolute; left: 50%; bottom: 40px; width: 740px; transform: translateX(-50%); z-index: 6;
@@ -139,7 +141,10 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
 
 /* 2 · label roll */
 .btn .label, .btn-dark .label { display: block; padding-right: 6px; }
-.lbl { position: relative; display: block; height: 1.3em; overflow: hidden; }
+/* labels are all caps: the line box keeps room for descenders, so caps sit ~0.5 px above centre; nudge them down */
+.lbl { position: relative; display: block; height: 1.3em; padding-top: .036em; overflow: hidden; }
+/* Fragment Mono ships in Regular only: a hairline stroke in the text colour reads as Medium */
+.btn .lbl, .btn-dark .lbl { -webkit-text-stroke: .35px currentColor; }
 .lbl > span { display: block; white-space: nowrap; transition: transform var(--btn-d) var(--btn-e); }
 .lbl .a { color: var(--txt); }
 .lbl .b { position: absolute; left: 0; top: 100%; color: var(--txt-h); }
