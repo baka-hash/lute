@@ -11,8 +11,8 @@ import { LuteIcon, LuteLogo } from "./icons";
 
 /* timeline (ms) */
 const T = {
-  window: 200, // video window fades in (frame 1)
-  grow: 1200, // window grows to full bleed (frame 2)
+  window: 0, // video window appears at 76% of full size…
+  grow: 0, // …and grows to full bleed straight away
   growDur: 1500,
   head: 2700, // headline, character by character (frame 3)
   route: 3900, // line and points (frame 4)
@@ -40,8 +40,8 @@ function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
 const easeIo = cubicBezier(0.65, 0, 0.35, 1);
 // the menu is usable (and the page scrolls) once the bar has formed
 const NAV_READY = T.nav + 1100;
-// frame 1: the 824 × 486 window is the full-bleed layer scaled down (same proportions as the 1440 × 850 frame)
-const WINDOW_SCALE = 824 / 1440;
+// the window starts as the full-bleed layer scaled to 76% (same proportions as the screen)
+const WINDOW_SCALE = 0.76;
 
 const ROUTE_VERTICES = [[0.58, 344.56], [282.08, 1.06], [402.58, 101.56], [228.08, 117.56], [607.58, 229.56], [1218.58, 109.06]];
 const POINTS = [
@@ -335,7 +335,7 @@ export default function Hero({ canvasRef, chromeRef }: Props) {
             </div>
           </div>
 
-          <div className="speed" ref={r.speed}>Video speed 3x</div>
+          <div className="speed" ref={r.speed}>(Video speed 3x)</div>
 
           <div className="copy">
             <p ref={r.lede}>
