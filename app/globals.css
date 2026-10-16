@@ -264,13 +264,13 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
   .s3-video video, .s3-item h3 span, .s3-item p span { transition-duration: 1ms !important; transition-delay: 0s !important; }
 }
 
-/* ---------- Section 4 · How it learns (82:16818), 1440 × 1047 ---------- */
-.s4 { position: relative; height: 1047px; background: var(--lute-white); }
+/* ---------- Section 4 · How it learns (82:16818), 1440 × 1147 (board 100 px taller than Figma) ---------- */
+.s4 { position: relative; height: 1147px; background: var(--lute-white); }
 .s4-eyebrow { position: absolute; left: 220px; top: 120px; }
 .s4-title { margin: 0; font-weight: 400; }
 .s4-body { position: absolute; left: 963px; top: 258px; width: 437px; margin: 0; font: 400 16px/1.3 var(--font-mono); letter-spacing: -0.32px; text-transform: uppercase; color: var(--lute-black); }
 
-.s4-board { position: absolute; left: 40px; top: 382px; width: 1360px; height: 545px; border-radius: 16px; overflow: hidden; }
+.s4-board { position: absolute; left: 40px; top: 382px; width: 1360px; height: 645px; border-radius: 16px; overflow: hidden; }
 /* the loop: a three.js ribbon on a white → Lute Blue gradient at 50% opacity */
 .s4-bg { position: absolute; inset: 0; opacity: .5; background: linear-gradient(180deg, var(--lute-white) 0%, var(--lute-blue) 100%); }
 .s4-scene { position: absolute; inset: 0; }
